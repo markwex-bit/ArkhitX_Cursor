@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: arkhitx-sdk
+Version: 0.1.0
+Summary: Governance and grounding SDK for ArkhitX-managed projects
+Requires-Python: >=3.10
+Requires-Dist: sqlalchemy>=2.0
+Requires-Dist: psycopg2-binary>=2.9
+Requires-Dist: neo4j>=5.0
+Requires-Dist: anthropic>=0.30
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"

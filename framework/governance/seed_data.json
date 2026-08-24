@@ -1,0 +1,153 @@
+{
+  "_comment": "ArkhitX self-governance seed data. Every rule from .cursorrules is modelled as a GovernanceRule node so that AI sessions can be grounded against them — ensuring compliance is structural, not accidental.",
+  "entities": [
+    {
+      "entity_type": "GovernanceRule",
+      "id_field": "id",
+      "nodes": [
+        {
+          "id": "RULE-001",
+          "name": "Every agent call is audited",
+          "description": "When ARKHITX_DATABASE_URL is set, every LLM call must be logged to audit_logs with actor, action, context, and timing. This is not optional — there are no exceptions and no silent failures.",
+          "layer": "SDK",
+          "phase": 3,
+          "enforcement": "structural",
+          "verifiable": true,
+          "violated_by": "Calling an LLM directly (e.g. anthropic.messages.create) without wrapping in GovernedBaseAgent or manually calling log_audit() afterward."
+        },
+        {
+          "id": "RULE-002",
+          "name": "Every agent call is grounding-scored",
+          "description": "Agents that override _grounding_query() receive knowledge graph context before calling the LLM. The grounding score (0-1) measures how much of the response cites graph data. A score of 0.0 means the agent ignored its knowledge graph entirely.",
+          "layer": "SDK",
+          "phase": 3,
+          "enforcement": "structural",
+          "verifiable": true,
+          "violated_by": "Not overriding _grounding_query() in an agent subclass, or overriding it to always return None."
+        },
+        {
+          "id": "RULE-003",
+          "name": "Prompts are database-managed",
+          "description": "Agent prompts live in the agent_prompts table in PostgreSQL. They must be loaded at runtime via ArkhitXClient.get_prompt(). Local fallbacks exist only for standalone operation when ARKHITX_DATABASE_URL is not set. Hardcoding a prompt inside Python code is a violation when governance is enabled.",
+          "layer": "Governance",
+          "phase": 1,
+          "enforcement": "gate",
+          "verifiable": true,
+          "violated_by": "Defining get_system_prompt() as a Python string literal in an agent class while ARKHITX_DATABASE_URL is set, instead of calling self._arkhitx.get_prompt(agent_id)."
+        },
+        {
+          "id": "RULE-004",
+          "name": "Solutions run independently",
+          "description": "When ARKHITX_DATABASE_URL is not set, the solution must still work using local prompts and without logging governance data. ArkhitX adds trust, not functionality. The solution must not fail if ArkhitX is unavailable.",
+          "layer": "SDK",
+          "phase": 0,
+          "enforcement": "test",
+          "verifiable": true,
+          "violated_by": "Raising an ImportError or connection error if arkhitx is not installed, rather than gracefully falling back to standalone mode."
+        },
+        {
+          "id": "RULE-005",
+          "name": "PostgreSQL for governance, Neo4j for knowledge",
+          "description": "Domain data (entities, relationships between business objects) belongs in Neo4j. Audit trails, prompts, grounding scores, and pipeline state belong in PostgreSQL. These two stores must never be used interchangeably.",
+          "layer": "All",
+          "phase": 1,
+          "enforcement": "structural",
+          "verifiable": true,
+          "violated_by": "Storing audit logs in Neo4j nodes, or storing knowledge graph entity data in a PostgreSQL table instead of Neo4j."
+        },
+        {
+          "id": "RULE-006",
+          "name": "Structural fixes over workarounds",
+          "description": "When a problem is identified, fix the root cause in the architecture. Never create band-aid patches, monkey patches, or one-off exception handlers that hide the real problem. The fix must hold under all inputs, not just the case that triggered it.",
+          "layer": "All",
+          "phase": 0,
+          "enforcement": "audit",
+          "verifiable": false,
+          "violated_by": "Adding a try/except that silently swallows an error, or special-casing a single input rather than fixing the general logic."
+        },
+        {
+          "id": "RULE-007",
+          "name": "No mock data or fallbacks",
+          "description": "If the LLM API fails, raise the error. If the database has no data, return empty results. Never generate placeholder content, template strings, or mock responses. The user must see a real failure, not a fake success.",
+          "layer": "SDK",
+          "phase": 0,
+          "enforcement": "structural",
+          "verifiable": true,
+          "violated_by": "Returning hardcoded strings like 'Sample response' or 'N/A' when an API call fails, rather than propagating the exception."
+        }
+      ]
+    },
+    {
+      "entity_type": "ProjectPhase",
+      "id_field": "id",
+      "nodes": [
+        {
+          "id": "PHASE-0",
+          "number": 0,
+          "name": "Build",
+          "description": "Build the solution the way you normally would — iterating with Cursor until it works. No ArkhitX involvement. The ontology is extracted FROM working code, not designed before the code exists.",
+          "entry_gate": "None — every new project starts here",
+          "exit_artifact": "ontology/{slug}.json + governance/prompts.json + governance/seed_data.json all present on disk"
+        },
+        {
+          "id": "PHASE-1",
+          "number": 1,
+          "name": "Register",
+          "description": "Register the project with ArkhitX. Reads the ontology and creates: a row in the projects table, rows in agent_prompts, and Neo4j uniqueness constraints for every declared entity type.",
+          "entry_gate": "All three governance files must exist on disk (ontology, prompts, seed_data)",
+          "exit_artifact": "Row in projects table with a stable project_id. Rows in agent_prompts. Neo4j constraints created. audit_logs contains a 'project_registered' event."
+        },
+        {
+          "id": "PHASE-2",
+          "number": 2,
+          "name": "Populate Graph",
+          "description": "Seed the Neo4j knowledge graph with the domain reference data from seed_data.json. This is the context that agents will retrieve during grounding queries.",
+          "entry_gate": "Project must be registered (Phase 1 complete). seed_data.json must contain at least one node.",
+          "exit_artifact": "Neo4j nodes exist for every declared entity type. audit_logs contains a 'graph_seeded' event."
+        },
+        {
+          "id": "PHASE-3",
+          "number": 3,
+          "name": "Wire Governance",
+          "description": "Install the arkhitx-sdk into the solution, modify agents to extend GovernedBaseAgent, and verify that audit logs and grounding scores are flowing. The solution is now production-ready with full governance.",
+          "entry_gate": "Graph must be seeded (Phase 2 complete). ARKHITX_DATABASE_URL must be set in the solution's environment.",
+          "exit_artifact": "grounding_records table contains entries with grounding_score > 0.0. audit_logs contains 'llm_call' events from the solution's agents."
+        }
+      ]
+    },
+    {
+      "entity_type": "ArchitectureDecision",
+      "id_field": "id",
+      "nodes": [
+        {
+          "id": "ADR-001",
+          "title": "Build first, govern after",
+          "decision": "Solutions are built without ArkhitX involvement, then governance is retrofitted once the solution works.",
+          "rationale": "Designing the ontology before the code exists leads to speculative schemas that don't match reality. Extracting the ontology from working code ensures it reflects what the solution actually does.",
+          "consequences": "The ontology is always derived from real code, not guesses. This means governance cannot be added to a solution that hasn't been built yet."
+        },
+        {
+          "id": "ADR-002",
+          "title": "ArkhitX governs, the solution solves",
+          "decision": "ArkhitX provides audit logging, grounding, and prompt management. It does not build the solution. The solution is responsible for its own domain logic.",
+          "rationale": "Separation of concerns. If ArkhitX tried to be both the governance layer and the solution layer, it would become tightly coupled to every domain it governs — making it unmaintainable.",
+          "consequences": "ArkhitX has no opinion about what the solution does, only how it does it. A contract review app and an HR Q&A app are governed by the same infrastructure."
+        },
+        {
+          "id": "ADR-003",
+          "title": "Two databases, one purpose each",
+          "decision": "PostgreSQL holds all governance state (audit logs, prompts, grounding scores, pipeline state). Neo4j holds all domain knowledge (entities, relationships). They are never swapped.",
+          "rationale": "Graph databases are optimised for relationship traversal and grounding queries. Relational databases are optimised for transactional consistency and audit integrity. Using each for its strength avoids architectural debt.",
+          "consequences": "Every data write must be classified: is this governance metadata (→ PostgreSQL) or domain knowledge (→ Neo4j)? There is no third option."
+        },
+        {
+          "id": "ADR-004",
+          "title": "Ontology extracted from code, not designed upfront",
+          "decision": "Entity types and relationship types are identified by reading working code, not by speculative design sessions before implementation.",
+          "rationale": "Up-front ontology design produces schemas for systems that don't exist yet. Working code already encodes the domain model implicitly — extracting it is cheaper and more accurate.",
+          "consequences": "Phase 0 (Build) must be complete before Phase 1 (Register) can start. You cannot register a project that hasn't been built."
+        }
+      ]
+    }
+  ]
+}

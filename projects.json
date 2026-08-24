@@ -1,0 +1,98 @@
+{
+  "_comment": "ArkhitX project registry. Auto-updated by scripts/new_project.py. Do not edit manually.",
+  "_ports": {
+    "next_frontend_port": 3006,
+    "next_backend_port": 8006,
+    "next_db_port": 5439
+  },
+  "projects": [
+    {
+      "slug": "contract-review",
+      "name": "Contract Review Assistant",
+      "description": "AI-powered contract analysis \u00e2\u20ac\u201d extracts clauses, scores risk, answers natural-language questions.",
+      "created": "2024-11-02",
+      "phase": 1,
+      "ports": {
+        "frontend": 3000,
+        "backend": 8000,
+        "db": 5433
+      },
+      "path": "projects/contract-review"
+    },
+    {
+      "slug": "incident-classifier",
+      "name": "IT Incident Classifier",
+      "description": "Classifies IT incidents by severity and category, then suggests resolution steps.",
+      "created": "2024-11-02",
+      "phase": 1,
+      "ports": {
+        "frontend": 3001,
+        "backend": 8001,
+        "db": 5434
+      },
+      "path": "projects/incident-classifier"
+    },
+    {
+      "slug": "hr-policy-qa",
+      "name": "HR Policy Q&A",
+      "description": "Answers employee questions grounded in the organisation's uploaded HR policy documents.",
+      "created": "2024-11-02",
+      "phase": 1,
+      "ports": {
+        "frontend": 3002,
+        "backend": 8002,
+        "db": 5435
+      },
+      "path": "projects/hr-policy-qa"
+    },
+    {
+      "slug": "supplier-risk",
+      "name": "Supplier Risk Assessor",
+      "description": "Scores supplier risk across financial, operational, compliance, and strategic dimensions.",
+      "created": "2024-11-02",
+      "phase": 1,
+      "ports": {
+        "frontend": 3003,
+        "backend": 8003,
+        "db": 5436
+      },
+      "path": "projects/supplier-risk"
+    },
+    {
+      "slug": "arkhitx-framework",
+      "name": "ArkhitX Framework",
+      "description": "ArkhitX governing itself. The seven rules from .cursorrules are modelled as GovernanceRule nodes in Neo4j so that every AI session is grounded against them.",
+      "created": "2026-05-18",
+      "phase": 0,
+      "ports": {},
+      "path": "framework",
+      "_note": "path points to framework/ not projects/ \u00e2\u20ac\u201d handled by _app_dir() using the path field"
+    },
+    {
+      "slug": "stellantis-ai-ba",
+      "name": "Stellantis AI BA Workbench",
+      "description": "AI application: Stellantis AI BA Workbench",
+      "created": "2026-05-27",
+      "phase": 0,
+      "ports": {
+        "frontend": 3004,
+        "backend": 8004,
+        "db": 5437
+      },
+      "path": "projects/stellantis-ai-ba"
+    },
+    {
+      "slug": "burdenfree",
+      "name": "BurdenFree",
+      "description": "AI application: BurdenFree",
+      "created": "2026-08-09",
+      "phase": 0,
+      "ports": {
+        "frontend": 3005,
+        "backend": 8005,
+        "db": 5438
+      },
+      "path": "projects/burdenfree"
+    }
+  ]
+}

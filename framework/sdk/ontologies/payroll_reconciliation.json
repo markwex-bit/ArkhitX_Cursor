@@ -1,0 +1,162 @@
+{
+  "project_name": "Payroll Reconciliation",
+  "version": "1.0.0",
+  "extracted_from": "C:\\Users\\wexel\\Projects\\ProfitCoach\\Payroll_Reconiliation",
+  "entity_types": {
+    "Client": {
+      "description": "An accounting firm client whose payroll is reconciled",
+      "properties": {
+        "name": {"type": "string", "required": true, "unique": true},
+        "accounting_software": {"type": "string", "enum": ["qbo", "qbd", "xero", "sage"]},
+        "payroll_provider": {"type": "string", "enum": ["gusto", "adp", "paychex", "rippling"]},
+        "notes": {"type": "string"}
+      }
+    },
+    "System": {
+      "description": "A payroll provider or accounting software product",
+      "properties": {
+        "name": {"type": "string", "required": true},
+        "type": {"type": "string", "required": true, "enum": ["payroll", "accounting"]},
+        "status": {"type": "string", "enum": ["available", "coming_soon"]},
+        "file_hint": {"type": "string"},
+        "export_format": {"type": "string"}
+      }
+    },
+    "ReconciliationSession": {
+      "description": "A single reconciliation run for a client, comparing payroll vs accounting data",
+      "properties": {
+        "status": {"type": "string", "enum": ["uploaded", "parsing", "mapping", "reconciling", "review", "approved", "exported"]},
+        "pay_period": {"type": "string"},
+        "reconciliation_summary": {"type": "string"}
+      }
+    },
+    "PayrollPeriod": {
+      "description": "A single pay period extracted from the payroll provider export",
+      "properties": {
+        "pay_period_start": {"type": "date", "required": true},
+        "pay_period_end": {"type": "date", "required": true},
+        "pay_date": {"type": "date", "required": true},
+        "employee_count": {"type": "integer"},
+        "gross_pay": {"type": "float"},
+        "federal_income_tax": {"type": "float"},
+        "state_income_tax": {"type": "float"},
+        "social_security_ee": {"type": "float"},
+        "medicare_ee": {"type": "float"},
+        "health_insurance_ee": {"type": "float"},
+        "retirement_401k_ee": {"type": "float"},
+        "net_pay": {"type": "float"},
+        "social_security_er": {"type": "float"},
+        "medicare_er": {"type": "float"},
+        "futa": {"type": "float"},
+        "suta": {"type": "float"},
+        "health_insurance_er": {"type": "float"},
+        "retirement_401k_er": {"type": "float"}
+      }
+    },
+    "LumpSumEntry": {
+      "description": "A lump-sum payroll journal entry posted by the accountant in QuickBooks",
+      "properties": {
+        "date": {"type": "date", "required": true},
+        "journal_entry_num": {"type": "string", "required": true},
+        "memo": {"type": "string"},
+        "pay_period_desc": {"type": "string"},
+        "debit_account_number": {"type": "string"},
+        "debit_account_name": {"type": "string"},
+        "credit_account_number": {"type": "string"},
+        "credit_account_name": {"type": "string"},
+        "amount": {"type": "float", "required": true}
+      }
+    },
+    "AccountMapping": {
+      "description": "A mapping from a payroll component to a Chart of Accounts entry",
+      "properties": {
+        "payroll_component": {"type": "string", "required": true},
+        "account_number": {"type": "string", "required": true},
+        "account_name": {"type": "string", "required": true},
+        "side": {"type": "string", "required": true, "enum": ["debit", "credit"]},
+        "confidence": {"type": "integer", "min": 0, "max": 100},
+        "combined_with": {"type": "string"},
+        "expense_account_number": {"type": "string"},
+        "expense_account_name": {"type": "string"},
+        "liability_account_number": {"type": "string"},
+        "liability_account_name": {"type": "string"}
+      }
+    },
+    "JournalEntry": {
+      "description": "A detailed journal entry (reversal or breakout) generated to replace a lump-sum entry",
+      "properties": {
+        "period_id": {"type": "string", "required": true},
+        "type": {"type": "string", "required": true, "enum": ["reversal", "breakout"]},
+        "date": {"type": "date", "required": true},
+        "memo": {"type": "string"},
+        "total_debit": {"type": "float"},
+        "total_credit": {"type": "float"},
+        "is_balanced": {"type": "boolean"},
+        "employee_count": {"type": "integer"}
+      }
+    },
+    "JournalEntryLine": {
+      "description": "A single debit or credit line within a journal entry",
+      "properties": {
+        "account_number": {"type": "string", "required": true},
+        "account_name": {"type": "string", "required": true},
+        "debit": {"type": "float"},
+        "credit": {"type": "float"},
+        "component": {"type": "string"}
+      }
+    }
+  },
+  "relationship_types": {
+    "HAS_PROVIDER": {
+      "from": "Client",
+      "to": "System",
+      "description": "Client uses this payroll provider",
+      "constraint": "System.type == 'payroll'"
+    },
+    "HAS_SOFTWARE": {
+      "from": "Client",
+      "to": "System",
+      "description": "Client uses this accounting software",
+      "constraint": "System.type == 'accounting'"
+    },
+    "HAS_SESSION": {
+      "from": "Client",
+      "to": "ReconciliationSession",
+      "description": "Client has a reconciliation session"
+    },
+    "CONTAINS_PERIOD": {
+      "from": "ReconciliationSession",
+      "to": "PayrollPeriod",
+      "description": "Session contains parsed payroll periods"
+    },
+    "CONTAINS_ENTRY": {
+      "from": "ReconciliationSession",
+      "to": "LumpSumEntry",
+      "description": "Session contains lump-sum QB entries"
+    },
+    "MATCHED_TO": {
+      "from": "PayrollPeriod",
+      "to": "LumpSumEntry",
+      "description": "Payroll period matched to a lump-sum QB entry",
+      "properties": {
+        "variance": {"type": "float"},
+        "amount_matches": {"type": "boolean"}
+      }
+    },
+    "HAS_MAPPING": {
+      "from": "Client",
+      "to": "AccountMapping",
+      "description": "Client has a saved COA mapping for a payroll component"
+    },
+    "GENERATES": {
+      "from": "PayrollPeriod",
+      "to": "JournalEntry",
+      "description": "Reconciliation of this period generates journal entries"
+    },
+    "HAS_LINE": {
+      "from": "JournalEntry",
+      "to": "JournalEntryLine",
+      "description": "Journal entry contains debit/credit lines"
+    }
+  }
+}

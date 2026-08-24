@@ -1,0 +1,224 @@
+# ArkhitX Methodology — Cursor Rules
+# Read this file every session. It defines how ArkhitX governs and grounds projects.
+
+## What This Is
+
+ArkhitX is a **governance and grounding layer** for AI-powered solutions. It is
+not the solution itself. It provides the infrastructure that makes solutions
+trustworthy: audit trails, grounding scores, knowledge graph context, and
+managed prompts.
+
+**The approach: build first, govern after.**
+
+You build solutions the way you normally would — iterating with Cursor until the
+thing works. Then you retrofit ArkhitX's governance and grounding layer into the
+solution using the `arkhitx-sdk` Python package.
+
+The ontology (domain model) is extracted FROM working code, not designed before
+the code exists. This avoids speculation and ensures the schema matches reality.
+
+## The Four Layers
+
+Every governed solution connects to ArkhitX's four layers:
+
+1. **Ontology Layer** — Defines what CAN exist. Entity types, relationship types,
+   property schemas. Extracted from working code, not designed speculatively.
+
+2. **Knowledge Graph Layer (Neo4j)** — Holds what DOES exist. Real domain data
+   as nodes and edges. Agents query this graph for grounded context.
+
+3. **Governance Layer (PostgreSQL)** — Controls and audits. Agent prompts, audit
+   trails, grounding scores, pipeline state. Every LLM call is logged here.
+
+4. **SDK Layer (arkhitx-sdk)** — The bridge. A Python package any project
+   installs to connect its agents to the governance and grounding infrastructure.
+
+## Architecture Rules — Never Violate
+
+1. **ArkhitX governs. The solution solves.** ArkhitX provides audit logging,
+   grounding, and prompt management. It does not build the solution.
+
+2. **Every agent call is audited.** When `ARKHITX_DATABASE_URL` is set, every
+   LLM call logs to `audit_logs` with actor, action, context, and timing.
+
+3. **Every agent call is grounding-scored.** Agents that override
+   `_grounding_query()` receive knowledge graph context before calling the LLM.
+   The grounding score (0-1) measures how much of the response cites graph data.
+
+4. **Prompts are database-managed.** Agent prompts live in the `agent_prompts`
+   table. Load them at runtime. Local fallbacks exist for standalone operation.
+
+5. **Solutions run independently.** When `ARKHITX_DATABASE_URL` is not set,
+   agents fall back to local prompts and no governance is logged. The solution
+   works without ArkhitX — ArkhitX adds trust, not functionality.
+
+6. **PostgreSQL for governance, Neo4j for knowledge.** Domain data (entities,
+   relationships) belongs in Neo4j. Audit trails, prompts, and grounding scores
+   belong in PostgreSQL. Never mix these.
+
+7. **Structural fixes over workarounds.** When a problem is identified, fix the
+   structure. Never create band-aid patches.
+
+8. **No mock data or fallbacks.** If the LLM fails, raise the error. If the
+   database has no data, return empty results. Never generate placeholder content.
+
+## The ArkhitX SDK
+
+The `sdk/` directory contains the `arkhitx-sdk` Python package. Any project
+can install it to get governance and grounding.
+
+### Key Components
+
+- `ArkhitXClient` — Connects to ArkhitX PostgreSQL + Neo4j. Provides
+  `log_audit()`, `store_grounding()`, `get_prompt()`, `query_graph()`.
+
+- `GovernedBaseAgent` — Abstract base agent with governance built in.
+  Wraps LLM calls with pre-call grounding queries and post-call audit logging.
+
+- `GraphPopulator` — Populates Neo4j with ontology constraints and domain data.
+
+### Integrating a Solution
+
+```python
+# In the solution's base_agent.py:
+
+class BaseAgent(ABC):
+    def __init__(self):
+        self._arkhitx = None
+        self._governed = False
+
+        # Auto-detect ArkhitX
+        if os.getenv("ARKHITX_DATABASE_URL"):
+            from arkhitx import ArkhitXClient
+            self._arkhitx = ArkhitXClient()
+            self._governed = True
+
+    def _grounding_query(self, user_message: str) -> dict | None:
+        """Override in subclasses to enable KG grounding."""
+        return None
+```
+
+## Project Phases (Retrofit Flow)
+
+| Phase | Name | What Happens |
+|-------|------|--------------|
+| 0 | Build Solution | Build the POC/MVP with Cursor. No ArkhitX involved. |
+| 1 | Register Project | Register in ArkhitX. Extract ontology from working code. |
+| 2 | Populate Graph | Import domain data into Neo4j as nodes and edges. |
+| 3 | Wire Governance | Install SDK, modify agents to use GovernedBaseAgent. |
+| 4 | Validate Grounding | Run the solution, verify grounding scores. |
+| 5 | Ship | Solution is production-ready with full governance. |
+
+## Workspace Directory Structure
+
+```
+ArkhitX_Cursor/
+├── WORKSPACE.md           ← Human entry point — read this first
+├── projects.json          ← Project registry + auto-assigned ports
+│
+├── framework/             ← ArkhitX framework (NEVER modified per project)
+│   ├── backend/           ← ArkhitX governance API (FastAPI) — port 8080 via infra
+│   ├── frontend/          ← ArkhitX governance dashboard (React) — port 8090 via infra
+│   ├── sdk/               ← arkhitx-sdk Python package
+│   │   ├── arkhitx/
+│   │   │   ├── client.py          ← ArkhitXClient
+│   │   │   ├── governed_agent.py  ← GovernedBaseAgent
+│   │   │   └── graph_populator.py ← GraphPopulator
+│   │   └── ontologies/            ← Extracted ontology schemas (JSON)
+│   └── docs/              ← ArkhitX methodology docs (NEVER modified per project)
+│
+├── infrastructure/        ← Shared Docker services for all projects
+│   └── docker-compose.yml ← PostgreSQL · Neo4j · ArkhitX API · ArkhitX UI
+│
+├── scripts/
+│   └── new_project.py     ← Scaffold a new project: python scripts/new_project.py <slug>
+│
+├── projects/              ← All AI application projects live here
+│   └── {project-slug}/    ← One folder per project — fully self-contained
+│       ├── docs/          ← Project phase docs (PHASE-0 through PHASE-3)
+│       ├── backend/       ← Solution FastAPI app
+│       ├── frontend/      ← Solution React app
+│       ├── ontology/      ← Project ontology JSON
+│       ├── scripts/       ← 01_register_project.py · 02_seed_graph.py
+│       ├── samples/       ← Sample input data
+│       ├── docker-compose.yml  ← Joins arkhitx-network for Phase 3
+│       ├── .env
+│       └── README.md
+│
+└── .cursorrules           ← This file
+```
+
+## Starting ArkhitX Services
+
+```bash
+# Start shared infrastructure (PostgreSQL, Neo4j, ArkhitX API + dashboard)
+cd infrastructure && docker-compose up -d
+
+# ArkhitX API:       http://localhost:8080
+# ArkhitX Dashboard: http://localhost:8090
+# Neo4j Browser:     http://localhost:7474
+```
+
+## Creating a New Project — Always Use the Scaffold Script
+
+**Never create a project manually.** Always use:
+
+```bash
+python scripts/new_project.py <slug> --name "Human Readable Name"
+```
+
+This auto-assigns ports from `projects.json`, creates the full directory structure,
+wires in the ArkhitX network, and registers the project in `projects.json`.
+
+## Project Folder Rule — Always Follow
+
+Every project MUST be fully self-contained under `projects/{project-slug}/`.
+
+**Never** put project-specific documentation under `framework/docs/`. That folder
+contains ArkhitX methodology only — it is framework infrastructure, not project output.
+
+**Always** create a `docs/` folder inside the project itself:
+
+```
+projects/my-project/
+└── docs/
+    ├── PHASE-0-BUILD.md       ← What was built and why
+    ├── PHASE-1-ONTOLOGY.md    ← Ontology decisions
+    ├── PHASE-2-GRAPH.md       ← What was seeded into Neo4j
+    └── PHASE-3-GOVERNANCE.md  ← How governance was wired
+```
+
+This keeps code and documentation co-located. The project is portable —
+hand the `projects/{slug}/` folder to anyone and it is self-explanatory.
+
+## Port Allocation
+
+Ports are auto-assigned by `scripts/new_project.py` and tracked in `projects.json`.
+
+| Component              | Port  |
+|------------------------|-------|
+| ArkhitX API (infra)    | 8080  |
+| ArkhitX Dashboard      | 8090  |
+| contract-review        | 3000 / 8000 |
+| incident-classifier    | 3001 / 8001 |
+| hr-policy-qa           | 3002 / 8002 |
+| supplier-risk          | 3003 / 8003 |
+| Next new project       | auto-assigned from projects.json |
+
+## Technology Stack
+
+- **Governance DB:** PostgreSQL (ArkhitX-managed)
+- **Knowledge Graph:** Neo4j (ArkhitX-managed)
+- **LLM:** Anthropic Claude (via anthropic SDK)
+- **SDK:** Python package (`arkhitx-sdk`)
+- **Dashboard:** React + TypeScript (Vite) — the ArkhitX UI
+- **Containerization:** Docker + Docker Compose
+
+## Session Workflow
+
+1. Read this file and `WORKSPACE.md`
+2. Check `projects.json` to see what projects exist and their current phase
+3. If starting a new project: run `python scripts/new_project.py <slug>`, then build domain logic
+4. If existing project (Phase 0 done): help retrofit ArkhitX governance (Phases 1–3)
+5. If adding governance: start infrastructure, register project, seed graph, wire agents
+6. Always verify governance is working (audit logs + grounding records flowing in dashboard)

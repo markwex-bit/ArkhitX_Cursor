@@ -1,0 +1,56 @@
+{
+  "_comment": "Ontology for the ArkhitX Framework itself. Defines the types of nodes that govern how every project (including ArkhitX) must behave.",
+  "project_name": "ArkhitX Framework",
+  "version": "1.0.0",
+  "entity_types": {
+    "GovernanceRule": {
+      "description": "A mandatory architectural rule extracted from .cursorrules that all ArkhitX-governed projects must follow. AI sessions are grounded against these nodes so that rule violations are caught before they reach production.",
+      "id_field": "id",
+      "properties": {
+        "id":          { "type": "string",  "required": true,  "description": "Stable machine-readable identifier (e.g. RULE-001)" },
+        "name":        { "type": "string",  "required": true,  "description": "Short human-readable rule title" },
+        "description": { "type": "string",  "required": true,  "description": "Full rule text as written in .cursorrules" },
+        "layer":       { "type": "string",  "required": true,  "description": "Which ArkhitX layer this rule governs: SDK | Governance | Knowledge | Ontology | All" },
+        "phase":       { "type": "integer", "required": true,  "description": "Earliest project phase at which this rule is checked (0-3)" },
+        "enforcement": { "type": "string",  "required": true,  "description": "How compliance is verified: structural | gate | test | audit" },
+        "verifiable":  { "type": "boolean", "required": true,  "description": "Whether compliance can be automatically checked" },
+        "violated_by": { "type": "string",  "required": false, "description": "Example of a common violation pattern" }
+      }
+    },
+    "ProjectPhase": {
+      "description": "One of the four ArkhitX governance phases that every registered project must pass through in order.",
+      "id_field": "id",
+      "properties": {
+        "id":              { "type": "string",  "required": true,  "description": "Stable identifier (e.g. PHASE-0)" },
+        "number":          { "type": "integer", "required": true,  "description": "Phase number 0-3" },
+        "name":            { "type": "string",  "required": true,  "description": "Phase name (Build | Register | Populate Graph | Wire Governance)" },
+        "description":     { "type": "string",  "required": true,  "description": "What happens in this phase" },
+        "entry_gate":      { "type": "string",  "required": true,  "description": "Condition that must be true before entering this phase" },
+        "exit_artifact":   { "type": "string",  "required": true,  "description": "What must exist on disk / in DB when this phase is complete" }
+      }
+    },
+    "ArchitectureDecision": {
+      "description": "A top-level structural decision about how ArkhitX is built. These are the non-negotiable constraints that shape every implementation choice.",
+      "id_field": "id",
+      "properties": {
+        "id":           { "type": "string", "required": true,  "description": "Stable identifier (e.g. ADR-001)" },
+        "title":        { "type": "string", "required": true,  "description": "Short title" },
+        "decision":     { "type": "string", "required": true,  "description": "The decision that was made" },
+        "rationale":    { "type": "string", "required": true,  "description": "Why this decision was made" },
+        "consequences": { "type": "string", "required": true,  "description": "What this decision means for implementations" }
+      }
+    }
+  },
+  "relationship_types": {
+    "ENFORCED_IN": {
+      "description": "Links a GovernanceRule to the ProjectPhase where it is checked",
+      "from": "GovernanceRule",
+      "to":   "ProjectPhase"
+    },
+    "SUPPORTS": {
+      "description": "Links a GovernanceRule to the ArchitectureDecision it supports",
+      "from": "GovernanceRule",
+      "to":   "ArchitectureDecision"
+    }
+  }
+}
