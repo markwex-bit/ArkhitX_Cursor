@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Qlik → Power BI Migration Assessor — Status Update</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+    background: #f8fafc;
+    color: #0f172a;
+  }
+  .masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+  h1 { font-size: 1.6rem; margin: 0; }
+  .as-of { color: #64748b; font-size: 0.9rem; white-space: nowrap; }
+  .subtitle { color: #64748b; margin: 0.25rem 0 2rem; font-size: 0.95rem; }
+
+  section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+  section h2 {
+    font-size: 1.05rem;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; display: inline-block; }
+  .dot.green { background: #10b981; }
+  .dot.amber { background: #f59e0b; }
+  .dot.blue { background: #3b82f6; }
+  .dot.rose { background: #f43f5e; }
+
+  ul { margin: 0; padding-left: 1.25rem; }
+  li { margin-bottom: 0.6rem; line-height: 1.5; font-size: 0.95rem; }
+  li:last-child { margin-bottom: 0; }
+
+  .risks li { color: #78350f; }
+
+  .footer-note {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    section { break-inside: avoid; box-shadow: none; }
+    .footer-note { display: none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="masthead">
+    <h1>Qlik → Power BI Migration Assessor</h1>
+    <span class="as-of">Status as of September 10, 2026</span>
+  </div>
+  <p class="subtitle">Project status update — prototype phase</p>
+
+  <section>
+    <h2><span class="dot green"></span>Accomplished</h2>
+    <ul>
+      <li>Built and verified a complete, working prototype of the Qlik → Power BI migration triage tool — a staged pipeline (eligibility filtering → data quality scoring → candidate matching → AI-assisted semantic comparison → confidence-scored recommendations), with a <strong>mandatory human review step</strong> before anything is finalized. Nothing gets auto-decided by AI.</li>
+      <li>Proved it end-to-end with real AI model calls, not simulated output — the tool correctly produced three different, sensible outcomes on test data (extend an app, extend another, rebuild a third with no viable match) rather than forcing uniform results.</li>
+      <li>Fixed the deployment so the tool runs cleanly in its production-style setup, not just on a developer machine — found and fixed 4 real configuration issues that would otherwise have surfaced later, in front of stakeholders.</li>
+      <li>Produced a full side-by-side comparison of what metadata Qlik Sense and Power BI can each actually provide — what's common to both, what's unique to each — built directly into the tool as a shareable screen.</li>
+      <li>Wrote a concrete, prioritized data request for the Qlik Sense and Power BI admins, so the next step (getting real data) is a simple handoff instead of a vague ask.</li>
+      <li>Did the hard strategic thinking up front: confirmed metadata alone can reliably narrow down candidates automatically, confirmed it cannot and should not fully replace human judgment on the final call, and mapped a realistic path to stronger evidence without blowing up cost or scope.</li>
+      <li>Improvements made along the way were captured back into the shared internal framework, so they benefit other projects too, not just this one.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="dot amber"></span>In Progress / Next</h2>
+    <ul>
+      <li>Waiting on real metadata exports from the Qlik Sense and Power BI admins (request already written and ready to send).</li>
+      <li>Once received: extend the tool to read whatever format the admins actually provide.</li>
+      <li>Re-validate the tool against a small pilot of real apps the team already has opinions about, before trusting it at full scale — the recommended de-risking step before wider rollout.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="dot blue"></span>Where This Is Going</h2>
+    <ul>
+      <li><strong>Short-term:</strong> prove accuracy on a real, known slice of apps.</li>
+      <li><strong>Medium-term:</strong> wire in full audit-trail/governance so every AI recommendation is traceable and defensible — important for stakeholder and compliance confidence.</li>
+      <li><strong>End-state:</strong> a tool that turns an otherwise impossible manual comparison (hundreds of Qlik apps against tens of thousands of Power BI apps) into a short, evidence-backed list a small team can actually review and sign off on.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="dot rose"></span>Risks / Watch Items</h2>
+    <ul class="risks">
+      <li>Timeline depends on how quickly the Qlik/Power BI admins can produce the requested exports — not fully in our control.</li>
+      <li>Some of the richest evidence (e.g. underlying report logic) may require more effort from the admins to extract than the basic metadata — flagged as optional/high-value, not blocking.</li>
+    </ul>
+  </section>
+
+  <p class="footer-note">Source: BOSS-UPDATES.md — say "update boss" to refresh this report.</p>
+
+</body>
+</html>

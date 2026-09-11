@@ -7,8 +7,11 @@ dist/
 .vite/
 data/
 
-# Application projects — stay local or in separate repos
-/projects/
+# Application projects — stay local or in separate repos, except an explicit
+# allowlist below (used by the ArkhitX_Cursor remote, which mirrors the
+# framework plus a chosen subset of projects).
+/projects/*
+!/projects/qlik-pbi-migration/
 
 # Secrets
 .env.local

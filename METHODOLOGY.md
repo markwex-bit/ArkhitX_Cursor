@@ -1,39 +1,130 @@
 # ArkhitX Methodology
 
-## For Consultants — Read This First
+**Start here.** This is the single canonical guide for how ArkhitX works.
 
-ArkhitX is a **governance and grounding layer** for AI-powered solutions. It is
-not the solution itself. It is the infrastructure that makes solutions trustworthy.
+> **Build first. Govern after.**
+>
+> You build the AI solution first — without ArkhitX. Once it works, you retrofit
+> ArkhitX to add audit trails, grounding scores, knowledge graph context, and
+> managed prompts. ArkhitX is a governance layer, not a solution builder.
 
-You build solutions the way you normally would — with Cursor, with your favorite
-stack, iterating quickly until the thing works. Then you retrofit ArkhitX to add
-governance (audit trails, prompt management, grounding scores) and grounding
-(knowledge graph context for your agents).
+---
 
-This is "build first, govern after." The ontology comes from working code, not
-from speculation.
+## What ArkhitX Is
 
-### What ArkhitX Provides
+ArkhitX is **governance and grounding infrastructure** for AI-powered solutions.
 
-1. **A governance database (PostgreSQL)** — audit trails for every agent call,
-   managed prompts you can tune without code changes, grounding scores that
-   prove your AI isn't hallucinating.
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| Governance DB | PostgreSQL | Audit logs, grounding records, agent prompts |
+| Knowledge Graph | Neo4j | Domain entities, relationships, ontology constraints |
+| SDK | Python (`arkhitx-sdk`) | Wraps LLM calls with audit + grounding |
+| Dashboard | React + FastAPI | Project status, audit trail, prompt editing |
 
-2. **A knowledge graph (Neo4j)** — your solution's domain model as nodes and
-   edges. Agents query this for grounded context instead of guessing.
+**ArkhitX governs. The project solves.**
 
-3. **A governance SDK** — a Python package (`arkhitx-sdk`) any project can
-   install. Drop-in base agent that wraps LLM calls with audit logging and
-   grounding. One import change, full governance.
+Your application lives in `projects/{slug}/`. ArkhitX lives in `framework/` and
+`infrastructure/`. The solution runs perfectly without ArkhitX — governance is
+additive, never a blocker.
 
-4. **A governance dashboard** — the ArkhitX UI shows audit logs, grounding
-   scores, agent prompts, and project status across all your engagements.
+ArkhitX **governs itself** — its seven rules are stored as `GovernanceRule` nodes
+in Neo4j, and its own LLM calls are logged to its own audit trail.
 
-### How It Works
+---
+
+## Build Order (Critical)
+
+```
+1. Build your AI application (Phase 0)     ← standalone, no ArkhitX required
+2. Apply ArkhitX governance (Phases 1–3)   ← register, seed graph, wire SDK
+3. Validate and ship (Phases 4–5)          ← consultant QA and handoff
+```
+
+`python scripts/new_project.py <slug>` scaffolds a **project folder** (backend,
+frontend, docker-compose). That is a convenience layout — not ArkhitX governance.
+Phase 0 still means: no `arkhitx-sdk` required, no ArkhitX PostgreSQL or Neo4j
+connection for the POC to run.
+
+---
+
+## The Four Layers
+
+Every governed solution connects to four layers:
+
+1. **Ontology** — Defines what CAN exist. Entity types, relationships, property
+   schemas. **Extracted from working code** in Phase 1, not designed speculatively.
+
+2. **Knowledge Graph (Neo4j)** — Holds what DOES exist. Domain data as nodes and
+   edges. Agents query this for grounded context.
+
+3. **Governance (PostgreSQL)** — Audit trails, managed prompts, grounding scores,
+   pipeline state. Every LLM call is logged here.
+
+4. **SDK (`arkhitx-sdk`)** — The bridge. `GovernedBaseAgent` wraps LLM calls with
+   pre-call grounding queries and post-call audit logging.
+
+See [framework/docs/ARCHITECTURE-PRINCIPLES.md](framework/docs/ARCHITECTURE-PRINCIPLES.md)
+for layer rules and [framework/docs/GOVERNANCE-PRINCIPLES.md](framework/docs/GOVERNANCE-PRINCIPLES.md)
+for the database schema.
+
+---
+
+## The Six Phases
+
+| Phase | Name | What Happens | Dashboard auto-tracks? |
+|-------|------|--------------|------------------------|
+| **0** | Build | Build POC/MVP with Cursor. No ArkhitX. | Files on disk |
+| **1** | Register | Extract ontology from code. Register in ArkhitX. | Yes |
+| **2** | Populate Graph | Seed Neo4j from `governance/seed_data.json`. | Yes |
+| **3** | Wire Governance | Install SDK. Agents extend `GovernedBaseAgent`. | Yes |
+| **4** | Validate Grounding | End-to-end QA. Confirm audit + grounding scores. | Manual |
+| **5** | Ship | Verify dual mode. Package handoff artifacts. | Manual |
+
+**Phases 0–3** are integration milestones. The dashboard auto-detects progress
+through Phase 3 based on registration, graph seeding, and grounding records.
+
+**Phases 4–5** are delivery milestones — consultant sign-off and client handoff.
+They do not add new wiring; they verify what Phases 1–3 produced.
+
+### Phase detail (deep dives)
+
+| Phase | Instruction doc |
+|-------|-----------------|
+| 0 — Build | [framework/docs/00-PROJECT-KICKOFF.md](framework/docs/00-PROJECT-KICKOFF.md) |
+| 1 — Register | [framework/docs/01-ONTOLOGY-DESIGN.md](framework/docs/01-ONTOLOGY-DESIGN.md) |
+| 2 — Populate Graph | [framework/docs/02-DATA-MAPPING.md](framework/docs/02-DATA-MAPPING.md) |
+| 2 — Advanced patterns | [framework/docs/03-GRAPH-POPULATION.md](framework/docs/03-GRAPH-POPULATION.md) |
+| 3 — Wire Governance | [framework/docs/04-AGENT-BUILD.md](framework/docs/04-AGENT-BUILD.md) |
+| 4 — Validate | [framework/docs/05-SOLUTION-VALIDATION.md](framework/docs/05-SOLUTION-VALIDATION.md) |
+| 5 — Ship | [framework/docs/06-DELIVERY-PACKAGE.md](framework/docs/06-DELIVERY-PACKAGE.md) |
+
+Each project also keeps phase notes in `projects/{slug}/docs/PHASE-*.md`.
+
+---
+
+## The Seven Governance Rules
+
+| ID | Rule | What It Enforces |
+|----|------|------------------|
+| RULE-001 | Audited | Every LLM call logged to `audit_logs` |
+| RULE-002 | Grounded | Agents override `_grounding_query()` for KG context |
+| RULE-003 | DB Prompts | Prompts in `agent_prompts`, loaded at runtime |
+| RULE-004 | Independent | Solution runs without ArkhitX when env vars unset |
+| RULE-005 | Correct DBs | Domain data in Neo4j; governance in PostgreSQL |
+| RULE-006 | No Workarounds | Structural fixes, not band-aid patches |
+| RULE-007 | No Mocks | LLM failure raises error; empty DB returns empty results |
+
+Stored as `GovernanceRule` nodes in Neo4j. Enforced by the Compliance Detector
+and Compliance Checker agents in the dashboard.
+
+---
+
+## How It Works
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Your Solution (React + FastAPI, or whatever stack you use) │
+│  Your Solution (projects/{slug}/)                           │
+│  Built in Phase 0. Governed in Phase 3.                    │
 │                                                             │
 │  Agents extend GovernedBaseAgent from arkhitx-sdk           │
 │  ↓ audit logs     ↓ grounding queries     ↓ prompt loads   │
@@ -43,80 +134,111 @@ from speculation.
 │  - audit_logs        │  - domain entities                   │
 │  - grounding_records │  - relationships                     │
 │  - agent_prompts     │  - ontology constraints              │
-│  - pipeline state    │                                      │
 ├──────────────────────┴──────────────────────────────────────┤
-│  ArkhitX Dashboard (React UI)                               │
-│  - View audit trails across projects                        │
-│  - Monitor grounding scores                                 │
-│  - Edit agent prompts                                       │
-│  - Track project phases                                     │
+│  ArkhitX Dashboard (http://localhost:8090)                  │
+│  Audit trails · Grounding scores · Prompts · Phase status   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### The Phases
+---
 
-| Phase | Name | What Happens |
-|-------|------|--------------|
-| 0 | Build the Solution | You build your POC/MVP with Cursor. No ArkhitX involved yet. |
-| 1 | Register Project | Register the project in ArkhitX. Extract the ontology from the working code. |
-| 2 | Populate Graph | Import domain data into Neo4j as nodes and edges. |
-| 3 | Wire Governance | Install `arkhitx-sdk`, modify agents to use `GovernedBaseAgent`. |
-| 4 | Validate Grounding | Run the solution, verify grounding scores meet the bar. |
-| 5 | Ship | Solution is production-ready with full governance. |
+## Retrofitting a Working Solution
 
-**Phase 0 is yours.** Build whatever you want, however you want. ArkhitX does
-not constrain your technology choices, your architecture, or your workflow.
+After Phase 0 (solution works standalone):
 
-**Phase 1 is extraction, not design.** The ontology comes FROM the working
-code. You analyze what entities and relationships actually exist in your
-solution and formalize them as a schema. This is concrete, not speculative.
-
-**Phases 2-3 are integration.** You connect your solution to ArkhitX's
-infrastructure. Your agents start logging to PostgreSQL and querying Neo4j.
-
-**Phases 4-5 are validation and delivery.** You verify the integration works,
-grounding scores are acceptable, and the solution is production-ready.
-
-### Retrofitting an Existing Solution
-
-If you already have a working solution (like a POC the client approved):
-
-1. **Install the SDK:**
-   ```
-   pip install arkhitx-sdk  # or add as a local path dependency
+1. **Start ArkhitX infrastructure:**
+   ```bash
+   cd infrastructure && docker-compose up -d
    ```
 
-2. **Set environment variables:**
+2. **Prepare governance files** in `projects/{slug}/`:
+   - `ontology/{slug}.json` — domain schema extracted from code
+   - `governance/prompts.json` — agent prompt definitions
+   - `governance/seed_data.json` — domain reference data for Neo4j
+
+3. **Phase 1 — Register:**
+   ```bash
+   python projects/{slug}/scripts/01_register_project.py
    ```
+   Copy the printed `ARKHITX_PROJECT_ID` into the project `.env`.
+
+4. **Phase 2 — Seed graph:**
+   ```bash
+   python projects/{slug}/scripts/02_seed_graph.py
+   ```
+
+5. **Phase 3 — Wire SDK:**
+   ```bash
+   pip install -e framework/sdk
+   ```
+   Make agents extend `GovernedBaseAgent`. Override `_grounding_query()` where
+   KG context helps. See [framework/docs/04-AGENT-BUILD.md](framework/docs/04-AGENT-BUILD.md).
+
+6. **Environment variables** (Phase 3+):
+   ```bash
    ARKHITX_DATABASE_URL=postgresql://user:password@localhost:5432/arkhitx
    ARKHITX_NEO4J_URI=bolt://localhost:7687
-   ARKHITX_PROJECT_ID=<your-project-uuid>
+   ARKHITX_NEO4J_USER=neo4j
+   ARKHITX_NEO4J_PASSWORD=password
+   ARKHITX_PROJECT_ID=<uuid from registration>
+   ANTHROPIC_API_KEY=sk-ant-...
    ```
 
-3. **Run the registration script:**
-   The SDK includes scripts to register your project, extract the ontology,
-   and populate Neo4j.
+7. **Phases 4–5** — Follow validation and delivery checklists in
+   [05-SOLUTION-VALIDATION.md](framework/docs/05-SOLUTION-VALIDATION.md) and
+   [06-DELIVERY-PACKAGE.md](framework/docs/06-DELIVERY-PACKAGE.md).
 
-4. **Modify your base agent:**
-   Your agents check for `ARKHITX_DATABASE_URL` at startup. If present, they
-   automatically wrap LLM calls with audit logging and grounding. If absent,
-   they run standalone — no ArkhitX dependency required.
+---
 
-5. **Override `_grounding_query()` in agents that benefit from KG context.**
+## Workspace Layout
 
-### What the Client Gets
+```
+ArkhitX_Cursor/
+├── METHODOLOGY.md         ← You are here (canonical methodology)
+├── WORKSPACE.md           ← Workspace quick start
+├── README.md              ← Product overview + quick start
+├── framework/             ← ArkhitX infrastructure (never modified per project)
+│   ├── backend/           ← Governance API (:8080)
+│   ├── frontend/          ← Dashboard (:8090)
+│   ├── sdk/               ← arkhitx-sdk Python package
+│   └── docs/              ← Phase instruction docs (see docs/README.md)
+├── infrastructure/        ← Shared Docker services (PostgreSQL, Neo4j)
+├── scripts/new_project.py ← Scaffold a new project folder
+└── projects/              ← Your AI applications (one folder per solution)
+```
 
-- **The solution** — the application they use daily, running independently.
-- **Full governance** — every agent call logged, every response grounding-scored.
-- **Tunable AI** — agent prompts editable through the ArkhitX dashboard.
-- **Auditable history** — compliance teams can trace any AI decision to source data.
+See [framework/docs/ARCHITECTURE-DECISIONS.md](framework/docs/ARCHITECTURE-DECISIONS.md)
+for why the workspace is structured this way.
 
-### Prerequisites
+---
 
-- **Cursor** — the AI IDE (cursor.com)
-- **Docker Desktop** — for running PostgreSQL, Neo4j, and the ArkhitX dashboard
-- **An Anthropic API key** — for Claude LLM access
-- **A working solution** — or a project you're ready to build
+## Document Map
 
-No coding experience required for the ArkhitX integration. The SDK handles the
-wiring. Cursor builds the solution. You make the strategic decisions.
+| Read this | When |
+|-----------|------|
+| **METHODOLOGY.md** (this file) | Always — start here |
+| [WORKSPACE.md](WORKSPACE.md) | Running projects, ports, env vars |
+| [README.md](README.md) | Product overview, SDK examples, dashboard |
+| [framework/docs/README.md](framework/docs/README.md) | Index of all phase + reference docs |
+| [.cursorrules](.cursorrules) | AI session rules for Cursor |
+
+**Do not use** documents in [framework/docs/archive/](framework/docs/archive/) —
+they describe a superseded design-first model.
+
+---
+
+## What the Client Gets
+
+- **The solution** — runs independently with or without ArkhitX configured
+- **Full governance** — every agent call logged, every response grounding-scored
+- **Tunable AI** — agent prompts editable through the dashboard
+- **Auditable history** — compliance teams trace any AI decision to source data
+
+---
+
+## Prerequisites
+
+- **Cursor** — AI IDE for building the solution (Phase 0)
+- **Docker Desktop** — PostgreSQL, Neo4j, ArkhitX dashboard
+- **Anthropic API key** — Claude LLM access
+- **A working solution** — or a project ready to build in Phase 0

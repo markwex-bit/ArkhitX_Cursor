@@ -1,0 +1,23 @@
+---
+description: Trigger phrase "update boss" — refresh the manager status report for the Qlik-to-Power BI migration project
+globs: projects/qlik-pbi-migration/**
+alwaysApply: false
+---
+
+# "Update boss" command
+
+When the user says **"update boss"** (in the context of the `qlik-pbi-migration` project), open
+and update `projects/qlik-pbi-migration/docs/BOSS-UPDATES.md`:
+
+1. Move the current "Latest Status" block down into "Update Log" as a dated archive entry
+   (preserve history — don't delete it).
+2. Write a new "Latest Status (as of `<today's date>`)" section with four parts: **Accomplished**,
+   **In Progress / Next**, **Where This Is Going**, **Risks / Watch Items**.
+3. Source "Accomplished" and "Next" from `docs/PHASE-0-BUILD.md` and the pending/completed todos
+   in the plan file at `c:\Users\wexel\.cursor\plans\qlik-pbi_migration_tool_7efb9936.plan.md`,
+   plus whatever's been done in the current session.
+4. Write for a non-technical manager: outcomes over implementation detail, no file paths, no
+   jargon, short enough to paste into an email or Slack message.
+5. Regenerate `projects/qlik-pbi-migration/docs/boss-update.html` (presentation-ready version,
+   same content as the new "Latest Status" section) — update its "Status as of" date too.
+6. Also paste the "Latest Status" section into the chat response, not just the files.

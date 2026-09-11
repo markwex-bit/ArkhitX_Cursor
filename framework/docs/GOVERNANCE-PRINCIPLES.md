@@ -8,9 +8,11 @@ is configurable without code changes.
 
 This document defines the governance database schema and the rules for using it.
 
+See [METHODOLOGY.md](../../METHODOLOGY.md) for the six-phase build-first workflow.
+
 ## Essential Governance Schema (Level 1)
 
-Every project gets these tables. They are created by the starter template.
+Every project gets these tables. Created when a project is registered with ArkhitX.
 
 ### `projects`
 
@@ -22,7 +24,7 @@ CREATE TABLE projects (
     name VARCHAR(255) NOT NULL,
     client_name VARCHAR(255) NOT NULL,
     description TEXT,
-    current_phase INTEGER DEFAULT 0 CHECK (current_phase BETWEEN 0 AND 6),
+    current_phase INTEGER DEFAULT 0 CHECK (current_phase BETWEEN 0 AND 5),
     phase_status VARCHAR(50) DEFAULT 'in_progress',
     ontology_schema JSONB DEFAULT '{}',
     pain_points JSONB DEFAULT '{}',
@@ -237,9 +239,11 @@ Agent prompts are treated as data, not code. They are:
 
 ### Rule 4: Phase Gates Are Enforced
 
-A project cannot advance to the next phase without an explicit approval action.
-The `projects.current_phase` field is the source of truth. Phase transitions
-create both an `audit_log` entry and a `pipeline_event`.
+Integration phases (0–3) cannot be skipped. The **Phase Gate Validator** agent
+checks entry conditions (files on disk, DB rows, Neo4j nodes, audit events). The
+dashboard auto-detects progress through Phase 3. Phases 4–5 (validate, ship) are
+consultant sign-off milestones documented in `05-SOLUTION-VALIDATION.md` and
+`06-DELIVERY-PACKAGE.md`.
 
 ### Rule 5: Audit Trail Is Append-Only
 
@@ -248,10 +252,10 @@ If a decision is reversed, a new log entry is created (e.g., `gate_reopened`).
 
 ## Governance Dashboard
 
-The starter template includes a governance dashboard UI at `/governance`. It shows:
+The ArkhitX dashboard runs at **http://localhost:8090**. It shows:
 
-- **Pipeline Status** — current phase, steps completed, pending gates
-- **Audit Log** — searchable, filterable log of all decisions
-- **Agent Activity** — recent agent calls, grounding scores, error rates
-- **Grounding Report** — per-agent grounding score trends
-- **Prompt Manager** — view and edit agent prompts (links to Tools page)
+- **Applications** — registered projects, phase status (auto-detected through Phase 3)
+- **Audit Log** — searchable log of all agent calls and governance events
+- **Grounding** — per-agent grounding score history
+- **Tools → Prompts** — view and edit agent prompts
+- **Tools → Agents** — run ArkhitX internal agents (Compliance Detector, Phase Gate Validator, etc.)

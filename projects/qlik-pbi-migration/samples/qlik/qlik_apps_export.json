@@ -1,0 +1,106 @@
+[
+  {
+    "id": "a1111111-1111-4111-8111-111111111111",
+    "name": "Sales Performance Dashboard",
+    "owner": { "id": "owner-001", "userId": "jsmith", "userDirectory": "CORP", "name": "J. Smith" },
+    "stream": { "id": "stream-sales", "name": "Sales & Finance" },
+    "published": true,
+    "publishTime": "2024-03-10T09:00:00.000Z",
+    "tags": [
+      { "id": "tag-sales", "name": "Sales" },
+      { "id": "tag-finance", "name": "Finance" }
+    ],
+    "description": "Executive dashboard tracking regional sales performance, YoY revenue growth, and sales rep leaderboards. Refreshed nightly from the corporate sales data warehouse.",
+    "fileSize": 48830000,
+    "lastReloadTime": "2026-09-05T02:15:00.000Z",
+    "createdDate": "2022-06-01T10:00:00.000Z",
+    "modifiedDate": "2026-09-05T02:15:00.000Z",
+    "customProperties": [],
+    "savedInProductVersion": "May 2026",
+    "dynamicColor": "",
+    "availabilityStatus": 0,
+    "schemaPath": "App",
+    "dataConnections": [
+      { "id": "conn-salesdw", "name": "SALESDW_PROD" }
+    ],
+    "masterItems": [
+      { "id": "mi-001", "objectType": "measure", "name": "Total Revenue", "expression": null },
+      { "id": "mi-002", "objectType": "measure", "name": "YoY Growth %", "expression": null },
+      { "id": "mi-003", "objectType": "measure", "name": "Units Sold", "expression": null },
+      { "id": "mi-004", "objectType": "dimension", "name": "Region", "expression": null },
+      { "id": "mi-005", "objectType": "dimension", "name": "Sales Rep", "expression": null },
+      { "id": "mi-006", "objectType": "dimension", "name": "Product Category", "expression": null }
+    ],
+    "sheets": [
+      { "id": "sh-001", "objectType": "sheet", "title": "Regional Sales Overview" },
+      { "id": "sh-002", "objectType": "sheet", "title": "Sales Rep Leaderboard" },
+      { "id": "sh-003", "objectType": "sheet", "title": "YoY Revenue Trend" }
+    ]
+  },
+  {
+    "id": "a2222222-2222-4222-8222-222222222222",
+    "name": "Regional Ops Tracker",
+    "owner": { "id": "owner-002", "userId": "mchen", "userDirectory": "CORP", "name": "M. Chen" },
+    "stream": { "id": "stream-ops", "name": "Operations" },
+    "published": true,
+    "publishTime": "2021-11-02T09:00:00.000Z",
+    "tags": [],
+    "description": "",
+    "fileSize": 21500000,
+    "lastReloadTime": "2025-11-01T03:00:00.000Z",
+    "createdDate": "2020-02-14T10:00:00.000Z",
+    "modifiedDate": "2025-11-01T03:00:00.000Z",
+    "customProperties": [],
+    "savedInProductVersion": "November 2023",
+    "dynamicColor": "",
+    "availabilityStatus": 0,
+    "schemaPath": "App",
+    "dataConnections": [
+      { "id": "conn-opsfs", "name": "OPS_FILESHARE" }
+    ],
+    "masterItems": [
+      { "id": "mi-101", "objectType": "measure", "name": "Uptime %", "expression": null },
+      { "id": "mi-102", "objectType": "measure", "name": "Ops Cost", "expression": null },
+      { "id": "mi-103", "objectType": "dimension", "name": "Region", "expression": null },
+      { "id": "mi-104", "objectType": "dimension", "name": "Facility", "expression": null }
+    ],
+    "sheets": [
+      { "id": "sh-101", "objectType": "sheet", "title": "Regional Ops KPI Overview" },
+      { "id": "sh-102", "objectType": "sheet", "title": "Downtime Analysis" }
+    ]
+  },
+  {
+    "id": "a3333333-3333-4333-8333-333333333333",
+    "name": "Customer Loyalty Analytics",
+    "owner": { "id": "owner-003", "userId": "rpatel", "userDirectory": "CORP", "name": "R. Patel" },
+    "stream": { "id": "stream-cx", "name": "Customer Experience" },
+    "published": true,
+    "publishTime": "2023-05-20T09:00:00.000Z",
+    "tags": [
+      { "id": "tag-loyalty", "name": "Loyalty Program" }
+    ],
+    "description": "Tracks loyalty program membership tiers, point redemption trends, and churn risk for the customer loyalty program.",
+    "fileSize": 15200000,
+    "lastReloadTime": "2026-08-20T04:00:00.000Z",
+    "createdDate": "2023-05-01T10:00:00.000Z",
+    "modifiedDate": "2026-08-20T04:00:00.000Z",
+    "customProperties": [],
+    "savedInProductVersion": "May 2026",
+    "dynamicColor": "",
+    "availabilityStatus": 0,
+    "schemaPath": "App",
+    "dataConnections": [
+      { "id": "conn-loyalty", "name": "LOYALTY_CRM_EXPORT" }
+    ],
+    "masterItems": [
+      { "id": "mi-201", "objectType": "measure", "name": "Active Members", "expression": null },
+      { "id": "mi-202", "objectType": "measure", "name": "Redemption Rate", "expression": null },
+      { "id": "mi-203", "objectType": "dimension", "name": "Loyalty Tier", "expression": null },
+      { "id": "mi-204", "objectType": "dimension", "name": "Region", "expression": null }
+    ],
+    "sheets": [
+      { "id": "sh-201", "objectType": "sheet", "title": "Loyalty Tier Distribution" },
+      { "id": "sh-202", "objectType": "sheet", "title": "Redemption Trends" }
+    ]
+  }
+]

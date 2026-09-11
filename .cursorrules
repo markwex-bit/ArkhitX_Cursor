@@ -1,5 +1,5 @@
 # ArkhitX Methodology — Cursor Rules
-# Read this file every session. It defines how ArkhitX governs and grounds projects.
+# Read METHODOLOGY.md first, then this file every session.
 
 ## What This Is
 
@@ -64,8 +64,8 @@ Every governed solution connects to ArkhitX's four layers:
 
 ## The ArkhitX SDK
 
-The `sdk/` directory contains the `arkhitx-sdk` Python package. Any project
-can install it to get governance and grounding.
+The `framework/sdk/` directory contains the `arkhitx-sdk` Python package. Any
+project can install it to get governance and grounding.
 
 ### Key Components
 
@@ -79,23 +79,27 @@ can install it to get governance and grounding.
 
 ### Integrating a Solution
 
+Agents should extend `GovernedBaseAgent`. When `ARKHITX_DATABASE_URL` is unset,
+the solution runs standalone using `_default_system_prompt()`.
+
 ```python
-# In the solution's base_agent.py:
+from arkhitx import GovernedBaseAgent, ArkhitXClient
+import os
 
-class BaseAgent(ABC):
+class MyAgent(GovernedBaseAgent):
+    agent_id = "my-agent"
+
     def __init__(self):
-        self._arkhitx = None
-        self._governed = False
+        client = None
+        if os.getenv("ARKHITX_DATABASE_URL") and os.getenv("ARKHITX_PROJECT_ID"):
+            client = ArkhitXClient()
+        super().__init__(arkhitx=client)
 
-        # Auto-detect ArkhitX
-        if os.getenv("ARKHITX_DATABASE_URL"):
-            from arkhitx import ArkhitXClient
-            self._arkhitx = ArkhitXClient()
-            self._governed = True
+    def _default_system_prompt(self) -> str:
+        return "Fallback when DB record is missing."
 
     def _grounding_query(self, user_message: str) -> dict | None:
-        """Override in subclasses to enable KG grounding."""
-        return None
+        return {"entity_type": "MyEntity", "depth": 1}
 ```
 
 ## Project Phases (Retrofit Flow)
@@ -109,11 +113,15 @@ class BaseAgent(ABC):
 | 4 | Validate Grounding | Run the solution, verify grounding scores. |
 | 5 | Ship | Solution is production-ready with full governance. |
 
+Phases 0–3 are integration milestones (dashboard auto-tracks through Phase 3).
+Phases 4–5 are delivery milestones (consultant sign-off, not auto-detected).
+
 ## Workspace Directory Structure
 
 ```
 ArkhitX_Cursor/
-├── WORKSPACE.md           ← Human entry point — read this first
+├── METHODOLOGY.md         ← Canonical methodology — read this first
+├── WORKSPACE.md           ← Workspace quick start
 ├── projects.json          ← Project registry + auto-assigned ports
 │
 ├── framework/             ← ArkhitX framework (NEVER modified per project)
@@ -135,7 +143,7 @@ ArkhitX_Cursor/
 │
 ├── projects/              ← All AI application projects live here
 │   └── {project-slug}/    ← One folder per project — fully self-contained
-│       ├── docs/          ← Project phase docs (PHASE-0 through PHASE-3)
+│       ├── docs/          ← Project phase docs + ARCHITECTURE.md + architecture-overview.html
 │       ├── backend/       ← Solution FastAPI app
 │       ├── frontend/      ← Solution React app
 │       ├── ontology/      ← Project ontology JSON
@@ -214,11 +222,30 @@ Ports are auto-assigned by `scripts/new_project.py` and tracked in `projects.jso
 - **Dashboard:** React + TypeScript (Vite) — the ArkhitX UI
 - **Containerization:** Docker + Docker Compose
 
+## Architecture Documentation (Required for Every Project)
+
+Every project in `projects/{slug}/` must include visual architecture docs in `docs/`:
+
+| File | Purpose |
+|------|---------|
+| `docs/ARCHITECTURE.md` | Mermaid source, ASCII diagram, component tables, how-to-view instructions |
+| `docs/architecture-overview.html` | Browser-rendered Mermaid diagrams (open in Chrome/Edge) |
+
+**Rules:**
+- Always create both files when scaffolding or building Phase 0
+- Use HTML for the visual — **do not generate PNG/SVG exports** for architecture
+- Keep Mermaid in `ARCHITECTURE.md` and mirror the same diagrams in `architecture-overview.html`
+- Update both files when architecture changes
+
+The scaffold script (`scripts/new_project.py`) creates starter templates. Replace TODO sections with project-specific diagrams during Phase 0.
+
 ## Session Workflow
 
-1. Read this file and `WORKSPACE.md`
+1. Read `METHODOLOGY.md`, this file, and `WORKSPACE.md`
 2. Check `projects.json` to see what projects exist and their current phase
-3. If starting a new project: run `python scripts/new_project.py <slug>`, then build domain logic
+3. If starting a new project: run `python scripts/new_project.py <slug>`, then build domain logic (Phase 0)
 4. If existing project (Phase 0 done): help retrofit ArkhitX governance (Phases 1–3)
 5. If adding governance: start infrastructure, register project, seed graph, wire agents
-6. Always verify governance is working (audit logs + grounding records flowing in dashboard)
+6. Phases 4–5: validate grounding scores and package delivery (see framework/docs/05 and 06)
+7. Always verify governance is working (audit logs + grounding records flowing in dashboard)
+8. Do not use documents in `framework/docs/archive/` — superseded design-first model

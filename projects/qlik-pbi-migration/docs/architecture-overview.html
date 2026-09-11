@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qlik to Power BI Migration Assessor — Architecture</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'neutral',
+      flowchart: { curve: 'basis', padding: 16 },
+      sequence: { actorMargin: 48, messageMargin: 32 },
+    });
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    .subtitle { color: #64748b; margin-bottom: 2rem; }
+    section {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    h2 { font-size: 1.15rem; margin: 0 0 1rem; color: #334155; }
+    .mermaid { display: flex; justify-content: center; }
+    .hint {
+      font-size: 0.875rem;
+      color: #64748b;
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    th { color: #64748b; font-weight: 600; }
+    code { background: #e2e8f0; padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.85em; }
+  </style>
+</head>
+<body>
+  <h1>Qlik to Power BI Migration Assessor</h1>
+  <p class="subtitle">Architecture — rendered Mermaid diagrams. A triage and prioritization tool, not an autonomous decision tool.</p>
+
+  <section>
+    <h2>Pipeline Flow</h2>
+    <pre class="mermaid">
+flowchart TD
+  PBIRaw["Power BI raw inventory\n(samples/powerbi/*.json)"] --> PBIElig["Stage 0a\nEligibility filter\n(deterministic)"]
+  PBIElig --> PBIClean["Clean canonical\nPBI pool"]
+  QlikRaw["Qlik raw inventory\n(samples/qlik/*.json)"] --> QlikQual["Stage 0b\nQuality pass\n(deterministic)"]
+  QlikQual --> QlikClean["Scored Qlik\ninventory"]
+  PBIClean --> Block["Stage 1\nCandidate generation\n(blocking, deterministic)"]
+  QlikClean --> Block
+  Block --> Semantic["Stage 2\nSemantic match\n(LLM - SemanticMatchAgent)"]
+  Semantic --> Confidence["Stage 3\nConfidence tiering\n(deterministic) +\nMigration advisor (LLM)"]
+  Confidence --> SignOff["Stage 4\nHuman sign-off gate\n(mandatory)"]
+  SignOff --> Backlog["Stage 5\nMigration backlog\n(CSV export)"]
+    </pre>
+  </section>
+
+  <section>
+    <h2>Request Flow — Eligibility + Matching</h2>
+    <pre class="mermaid">
+sequenceDiagram
+    participant U as User (browser)
+    participant UI as React frontend
+    participant API as FastAPI backend
+    participant Svc as Pipeline services
+    participant LLM as Claude (Anthropic)
+    participant DB as SQLite (sign-offs)
+
+    U->>UI: Open app
+    UI->>API: GET /api/eligibility, /api/quality/*, /api/dispositions
+    API->>Svc: run_pipeline_cached()
+    Svc->>Svc: eligibility.evaluate_eligibility() [deterministic]
+    Svc->>Svc: quality.evaluate_qlik_quality() [deterministic]
+    Svc->>Svc: matching.generate_candidates() [deterministic, blocking]
+    Svc->>LLM: SemanticMatchAgent.process() [top N candidates only]
+    LLM-->>Svc: semantic_score, matched/unmatched concepts
+    Svc->>LLM: MigrationAdvisorAgent.process() [best candidate only]
+    LLM-->>Svc: disposition, effort, rationale
+    Svc-->>API: PipelineResult
+    API-->>UI: JSON
+    UI-->>U: Eligibility report, quality dashboard, match matrix
+
+    U->>UI: Select candidate, submit sign-off
+    UI->>API: POST /api/signoff
+    API->>DB: INSERT signoffs row
+    U->>UI: Open Backlog tab
+    UI->>API: GET /api/backlog
+    API->>DB: SELECT confirmed sign-offs
+    API-->>UI: Backlog entries (only "confirmed")
+    </pre>
+  </section>
+
+  <section>
+    <h2>Component Responsibilities</h2>
+    <table>
+      <thead>
+        <tr><th>Layer</th><th>Component</th><th>Responsibility</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Data</td><td><code>samples/qlik/qlik_apps_export.json</code></td><td>Sample Qlik QRS-shaped export (3 apps)</td></tr>
+        <tr><td>Data</td><td><code>samples/powerbi/powerbi_scan_result.json</code></td><td>Sample Power BI Scanner API-shaped export (20 apps, 6 workspaces)</td></tr>
+        <tr><td>Backend</td><td><code>services/ingestion.py</code></td><td>Parses raw JSON into normalized catalog models</td></tr>
+        <tr><td>Backend</td><td><code>services/eligibility.py</code></td><td>Stage 0a — deterministic PBI exclusion rules + near-duplicate clustering</td></tr>
+        <tr><td>Backend</td><td><code>services/quality.py</code></td><td>Stage 0b — Qlik completeness scoring + cross-platform parity matrix</td></tr>
+        <tr><td>Backend</td><td><code>services/matching.py</code></td><td>Stage 1 — candidate blocking + confidence tiering (pluggable interface)</td></tr>
+        <tr><td>Backend</td><td><code>agents/semantic_match_agent.py</code></td><td>Stage 2 — LLM business-intent comparison, graceful fallback</td></tr>
+        <tr><td>Backend</td><td><code>agents/migration_advisor_agent.py</code></td><td>Stage 3 — LLM disposition/effort/rationale, grounded in facts</td></tr>
+        <tr><td>Backend</td><td><code>services/signoff.py</code></td><td>Stage 4/5 — mandatory human sign-off gate, migration backlog builder</td></tr>
+        <tr><td>Backend</td><td><code>services/pipeline.py</code></td><td>Orchestrates all stages; caches results</td></tr>
+        <tr><td>Frontend</td><td><code>pages/HomePage.tsx</code></td><td>Tabbed workbench: Eligibility, Quality, Match Matrix, Backlog</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <p class="hint">
+    Open this file in any browser: <code>docs/architecture-overview.html</code><br />
+    Keep diagrams in sync with <code>docs/ARCHITECTURE.md</code>. See <code>docs/DATA-SCHEMAS.md</code>
+    and <code>docs/PHASE-0-BUILD.md</code> for data provenance and build decisions.
+  </p>
+</body>
+</html>

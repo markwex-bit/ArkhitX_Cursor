@@ -42,6 +42,8 @@ What it creates
             Dockerfile
         docs/
             README.md
+            ARCHITECTURE.md
+            architecture-overview.html
             PHASE-0-BUILD.md
             PHASE-1-ONTOLOGY.md
             PHASE-2-GRAPH.md
@@ -662,6 +664,8 @@ DOCS_README = """\
 
 | File                 | Phase | Contents                              |
 |----------------------|-------|---------------------------------------|
+| ARCHITECTURE.md      | 0     | Mermaid source, ASCII diagram, tables |
+| architecture-overview.html | 0 | Browser-rendered architecture diagrams |
 | PHASE-0-BUILD.md     | 0     | What was built and key decisions      |
 | PHASE-1-ONTOLOGY.md  | 1     | Ontology schema and registration      |
 | PHASE-2-GRAPH.md     | 2     | Knowledge graph seeding               |
@@ -687,6 +691,196 @@ docker-compose up --build
 ```
 
 Open http://localhost:{{FRONTEND_PORT}}
+
+## Architecture
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) and open [architecture-overview.html](./architecture-overview.html) in a browser for rendered diagrams.
+"""
+
+DOCS_ARCHITECTURE = """\
+# {{NAME}} — Architecture
+
+## How to view these diagrams
+
+| Method | How |
+|--------|-----|
+| **Browser (recommended)** | Open [`architecture-overview.html`](./architecture-overview.html) in Chrome/Edge — Mermaid renders automatically |
+| **Cursor Markdown preview** | Open this file → `Ctrl+Shift+V` (Windows) or `Cmd+Shift+V` (Mac) |
+| **ASCII (always visible)** | Scroll to [ASCII Overview](#ascii-overview) — no preview needed |
+
+---
+
+## ASCII Overview
+
+<!-- TODO: Replace with project-specific ASCII diagram -->
+
+```
+┌──────────────┐
+│   User / UI  │
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│   Backend    │
+│   API        │
+└──────┬───────┘
+       ▼
+┌──────────────┐     ┌──────────────┐
+│  Agent(s)    │ ──► │  Data Store  │
+└──────────────┘     └──────────────┘
+```
+
+---
+
+## High-Level Overview (Mermaid)
+
+<!-- TODO: Replace with project-specific flowchart. Keep in sync with architecture-overview.html -->
+
+```mermaid
+flowchart TB
+    UI["User Interface"]
+    API["Backend API"]
+    AGT["Agent Layer"]
+    DATA[("Data / Knowledge")]
+
+    UI --> API
+    API --> AGT
+    AGT --> DATA
+    AGT --> API
+    API --> UI
+```
+
+## Key Flow (Mermaid)
+
+<!-- TODO: Add sequence or flow diagram for primary user journey -->
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant UI as UI
+    participant API as API
+    participant A as Agent
+
+    U->>UI: action
+    UI->>API: request
+    API->>A: process
+    A->>API: response
+    API->>UI: result
+    UI->>U: display
+```
+
+## Component Responsibilities
+
+| Layer | Component | Responsibility |
+|-------|-----------|------------------|
+| UI | TODO | TODO |
+| API | TODO | TODO |
+| Agent | TODO | TODO |
+| Data | TODO | TODO |
+
+## Phase 0 vs Future Phases (ArkhitX)
+
+| Concern | Phase 0 (now) | Phase 2–3 (ArkhitX) |
+|---------|---------------|---------------------|
+| Grounding storage | PostgreSQL / files | Neo4j knowledge graph |
+| Agent prompts | In code | `agent_prompts` table |
+| Audit trail | None | Every LLM call logged |
+| Grounding score | None | Measured per response |
+"""
+
+DOCS_ARCHITECTURE_HTML = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{NAME}} — Architecture</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'neutral',
+      flowchart: { curve: 'basis', padding: 16 },
+      sequence: { actorMargin: 48, messageMargin: 32 },
+    });
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    .subtitle { color: #64748b; margin-bottom: 2rem; }
+    section {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    h2 { font-size: 1.15rem; margin: 0 0 1rem; color: #334155; }
+    .mermaid { display: flex; justify-content: center; }
+    .hint {
+      font-size: 0.875rem;
+      color: #64748b;
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    code { background: #e2e8f0; padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.85em; }
+  </style>
+</head>
+<body>
+  <h1>{{NAME}}</h1>
+  <p class="subtitle">Architecture — rendered Mermaid diagrams</p>
+
+  <section>
+    <h2>High-Level Overview</h2>
+    <pre class="mermaid">
+flowchart TB
+    UI["User Interface"]
+    API["Backend API"]
+    AGT["Agent Layer"]
+    DATA[("Data / Knowledge")]
+
+    UI --> API
+    API --> AGT
+    AGT --> DATA
+    AGT --> API
+    API --> UI
+    </pre>
+  </section>
+
+  <section>
+    <h2>Key Flow</h2>
+    <pre class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant UI as UI
+    participant API as API
+    participant A as Agent
+
+    U->>UI: action
+    UI->>API: request
+    API->>A: process
+    A->>API: response
+    API->>UI: result
+    UI->>U: display
+    </pre>
+  </section>
+
+  <p class="hint">
+    Open this file in any browser: <code>docs/architecture-overview.html</code><br />
+    Keep diagrams in sync with <code>docs/ARCHITECTURE.md</code>.
+  </p>
+</body>
+</html>
 """
 
 DOCS_PHASE_1 = """\
@@ -991,6 +1185,8 @@ def scaffold(slug: str, name: str, fp: int, bp: int, dp: int) -> None:
 
     # docs
     write(root / "docs/README.md",           DOCS_README, **kw)
+    write(root / "docs/ARCHITECTURE.md",     DOCS_ARCHITECTURE, **kw)
+    write(root / "docs/architecture-overview.html", DOCS_ARCHITECTURE_HTML, **kw)
     write(root / "docs/PHASE-0-BUILD.md",    DOCS_PHASE_0, **kw)
     write(root / "docs/PHASE-1-ONTOLOGY.md", DOCS_PHASE_1, **kw)
     write(root / "docs/PHASE-2-GRAPH.md",    DOCS_PHASE_2, **kw)

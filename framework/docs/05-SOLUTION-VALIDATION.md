@@ -33,7 +33,17 @@ ORDER BY created_at DESC;
 
 4. **Set thresholds** — Define minimum acceptable scores per agent (e.g. ≥ 0.7 average, no critical path below 0.5). Adjust `_grounding_query`, Neo4j data, or prompts until scores stabilize.
 
-5. **Document failures** — If scores are low, check empty graph matches, wrong `entity_type` in `_grounding_query`, or responses that omit node identifiers (default scoring uses names/ids in text — see `_compute_grounding_score` in `sdk/arkhitx/governed_agent.py`).
+5. **Run a golden-query eval, not just a grounding score** — A high grounding score only proves the response cited *some* graph nodes; it doesn't prove retrieval found the *right* ones. For each agent, maintain a small golden set in `projects/{slug}/docs/golden_queries.json`: known asks paired with the node id(s) retrieval is expected to surface.
+
+   ```json
+   [
+     { "agent_id": "mapping_agent", "ask": "Map GL account 4010", "expected_node_ids": ["acct-4010"] }
+   ]
+   ```
+
+   Run each ask through the agent's real `_grounding_query()` + `ArkhitXClient.get_grounding_context()` path and assert `expected_node_ids` is a subset of the returned node ids. Failures here mean the chosen `retrieval_strategy` (graph/structured/vector/hybrid) or its parameters are wrong for that ask — revisit the Step 0 choice in `04-AGENT-BUILD.md` before tuning prompts.
+
+6. **Document failures** — If scores are low, check empty graph matches, wrong `entity_type`/`retrieval_strategy` in `_grounding_query`, or responses that omit node identifiers (default scoring uses names/ids in text — see `_compute_grounding_score` in `sdk/arkhitx/governed_agent.py`).
 
 ## SDK reference
 

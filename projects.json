@@ -1,9 +1,9 @@
 {
   "_comment": "ArkhitX project registry. Auto-updated by scripts/new_project.py. Do not edit manually.",
   "_ports": {
-    "next_frontend_port": 3006,
-    "next_backend_port": 8006,
-    "next_db_port": 5439
+    "next_frontend_port": 3009,
+    "next_backend_port": 8009,
+    "next_db_port": 5442
   },
   "projects": [
     {
@@ -93,6 +93,45 @@
         "db": 5438
       },
       "path": "projects/burdenfree"
+    },
+    {
+      "slug": "initiative-workbench",
+      "name": "Initiative Workbench",
+      "description": "AI application: Initiative Workbench",
+      "created": "2026-08-25",
+      "phase": 0,
+      "ports": {
+        "frontend": 3006,
+        "backend": 8006,
+        "db": 5439
+      },
+      "path": "projects/initiative-workbench"
+    },
+    {
+      "slug": "vehicle-assistant",
+      "name": "Vehicle Owner Assistant",
+      "description": "AI application: Vehicle Owner Assistant",
+      "created": "2026-08-31",
+      "phase": 0,
+      "ports": {
+        "frontend": 3007,
+        "backend": 8007,
+        "db": 5440
+      },
+      "path": "projects/vehicle-assistant"
+    },
+    {
+      "slug": "qlik-pbi-migration",
+      "name": "Qlik to Power BI Migration Assessor",
+      "description": "AI application: Qlik to Power BI Migration Assessor",
+      "created": "2026-09-09",
+      "phase": 0,
+      "ports": {
+        "frontend": 3008,
+        "backend": 8008,
+        "db": 5441
+      },
+      "path": "projects/qlik-pbi-migration"
     }
   ]
 }

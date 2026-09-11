@@ -18,6 +18,14 @@ import anthropic
 
 from arkhitx.client import ArkhitXClient
 
+# The four retrieval strategies ArkhitX's grounding layer supports. See
+# framework/docs/ARCHITECTURE-PRINCIPLES.md ("Layer 3: Grounding") for the
+# decision table on which to pick per agent/ask. This is deliberately a
+# closed set enforced in `call_llm()` below — an agent cannot wire grounding
+# without explicitly choosing one, so retrieval-method selection can never be
+# silently skipped or defaulted away from during Phase 3.
+RETRIEVAL_STRATEGIES = {"graph", "vector", "hybrid", "structured"}
+
 
 class GovernedBaseAgent(ABC):
     """
@@ -66,8 +74,29 @@ class GovernedBaseAgent(ABC):
     def _grounding_query(self, user_message: str) -> dict | None:
         """
         Override in subclasses to provide a grounding query.
-        Return a dict with 'entity_type' and optional 'filters' and 'depth',
-        or None to skip grounding for this call.
+
+        Return None to skip grounding for this call. Otherwise return a dict
+        that MUST include "retrieval_strategy" — one of RETRIEVAL_STRATEGIES:
+
+          - "graph"      Multi-hop relationship traversal (e.g. lineage, impact,
+                          "what depends on X"). Requires "entity_type"; optional
+                          "filters" (dict) and "depth" (int, default 1).
+          - "structured" Exact-match lookup with no relationship traversal
+                          (e.g. fetch one record by id/filter). Requires
+                          "entity_type" and typically "filters".
+          - "vector"     Semantic similarity search over embedded node text
+                          (e.g. "find the record that means the same thing").
+                          Requires "vector_index" and "query_embedding"; optional
+                          "top_k" (default 5).
+          - "hybrid"     Graph traversal to narrow candidates, then vector
+                          similarity to rank/filter within that set. Requires
+                          the graph fields above plus "query_embedding".
+
+        There is deliberately no default strategy — choosing one is a required
+        design decision per agent/ask, not an implementation detail. See
+        framework/docs/ARCHITECTURE-PRINCIPLES.md for the selection table and
+        framework/docs/04-AGENT-BUILD.md for wiring steps. Omitting
+        "retrieval_strategy" raises ValueError in call_llm().
         """
         return None
 
@@ -113,10 +142,23 @@ class GovernedBaseAgent(ABC):
         if self.arkhitx:
             grounding_spec = self._grounding_query(user_message)
             if grounding_spec:
+                strategy = grounding_spec.get("retrieval_strategy")
+                if strategy not in RETRIEVAL_STRATEGIES:
+                    raise ValueError(
+                        f"{self.__class__.__name__}._grounding_query() returned a "
+                        f"grounding spec without a valid 'retrieval_strategy' "
+                        f"(got {strategy!r}, must be one of {sorted(RETRIEVAL_STRATEGIES)}). "
+                        "Choosing a retrieval strategy is a required design decision — "
+                        "see framework/docs/ARCHITECTURE-PRINCIPLES.md."
+                    )
                 graph_context = self.arkhitx.get_grounding_context(
-                    entity_type=grounding_spec["entity_type"],
+                    entity_type=grounding_spec.get("entity_type"),
                     filters=grounding_spec.get("filters"),
                     depth=grounding_spec.get("depth", 1),
+                    retrieval_strategy=strategy,
+                    vector_index=grounding_spec.get("vector_index"),
+                    query_embedding=grounding_spec.get("query_embedding"),
+                    top_k=grounding_spec.get("top_k", 5),
                 )
                 if graph_context.get("nodes"):
                     context_text = json.dumps(graph_context["nodes"], indent=2)

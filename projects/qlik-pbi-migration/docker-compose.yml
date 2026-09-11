@@ -1,0 +1,99 @@
+##############################################################################
+# Qlik to Power BI Migration Assessor  —  docker-compose.yml
+#
+# Phase 0 (standalone):  docker-compose up --build
+# Phase 3 (governed):    start infrastructure first, then docker-compose up
+##############################################################################
+
+networks:
+  # Join ArkhitX shared network when infrastructure is running (Phase 3).
+  # Comment this out if running fully standalone.
+  arkhitx-network:
+    external: true
+    name: arkhitx-network
+
+services:
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: qlikpbimigration
+    ports:
+      - "5441:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d qlikpbimigration"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    ports:
+      - "8008:8000"
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      DATABASE_URL: postgresql://user:password@db:5432/qlikpbimigration
+      CORS_ORIGINS: http://localhost:3008
+
+      # ── ArkhitX governance (Phase 3) ──────────────────────────────────────
+      # Leave blank to run standalone (Phase 0 behaviour).
+      # Fill in after running scripts/01_register_project.py.
+      ARKHITX_DATABASE_URL: ${ARKHITX_DATABASE_URL:-}
+      ARKHITX_NEO4J_URI: ${ARKHITX_NEO4J_URI:-}
+      ARKHITX_NEO4J_USER: ${ARKHITX_NEO4J_USER:-neo4j}
+      ARKHITX_NEO4J_PASSWORD: ${ARKHITX_NEO4J_PASSWORD:-}
+      ARKHITX_PROJECT_ID: ${ARKHITX_PROJECT_ID:-}
+
+      # ── Live extraction (optional) — see docs/LIVE-EXTRACTION-SETUP.md ────
+      # Defaults to "sample" (safe, no live calls) when left unset.
+      DATA_SOURCE: ${DATA_SOURCE:-sample}
+      QLIK_SERVER_URL: ${QLIK_SERVER_URL:-}
+      QLIK_CLIENT_CERT_PATH: ${QLIK_CLIENT_CERT_PATH:-/certs/client.pem}
+      QLIK_CLIENT_KEY_PATH: ${QLIK_CLIENT_KEY_PATH:-/certs/client_key.pem}
+      QLIK_ROOT_CA_PATH: ${QLIK_ROOT_CA_PATH:-/certs/root.pem}
+      QLIK_USER_DIRECTORY: ${QLIK_USER_DIRECTORY:-}
+      QLIK_USER_ID: ${QLIK_USER_ID:-}
+      QLIK_VIRTUAL_PROXY: ${QLIK_VIRTUAL_PROXY:-}
+      PBI_TENANT_ID: ${PBI_TENANT_ID:-}
+      PBI_CLIENT_ID: ${PBI_CLIENT_ID:-}
+      PBI_CLIENT_SECRET: ${PBI_CLIENT_SECRET:-}
+      PBI_WORKSPACE_IDS: ${PBI_WORKSPACE_IDS:-}
+
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - default
+      - arkhitx-network
+    volumes:
+      - ./backend:/app
+      - ../../framework/sdk:/sdk   # ArkhitX SDK (editable install)
+      # ingestion.py resolves PROJECT_ROOT from its own file location; inside
+      # this container that resolves to "/", so samples/ must be mounted here
+      # to match (locally, PROJECT_ROOT is the real qlik-pbi-migration/ dir).
+      - ./samples:/samples
+      # Only needed when DATA_SOURCE=live — place the QMC-exported client
+      # cert/key/root CA here. Safe to leave the folder empty/absent otherwise.
+      - ./certs:/certs
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3008:3008"
+    environment:
+      # Inside the frontend container, "localhost" refers to the frontend
+      # container itself, not the backend. Must point at the backend's
+      # service name + in-container port (Docker Compose's internal DNS).
+      VITE_API_URL: "http://backend:8000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

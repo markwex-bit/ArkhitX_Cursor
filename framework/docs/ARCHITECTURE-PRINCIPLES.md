@@ -18,14 +18,12 @@ Documented in the project's schema files.
 - If an entity type isn't defined in the ontology, it cannot be created in the graph
 - Properties have defined types (string, number, date, enum) — no untyped fields
 - Relationships have defined direction and cardinality
-- The ontology is designed from client signals, never from generic templates
+- The ontology is extracted from working code in Phase 1, never from generic templates or speculative design
 
 **Implementation guidance for Cursor:**
-- Store the ontology definition as a JSON schema in PostgreSQL (`project.ontology_schema`)
-  for governance, and enforce it when writing to Neo4j
+- Store the ontology definition as a JSON file in `projects/{slug}/ontology/` and in PostgreSQL (`project.ontology_schema`) after registration
 - When creating Neo4j nodes, validate against the schema before writing
-- When the consultant approves the ontology at the Phase 1 gate, lock it — no schema
-  changes without explicit re-approval
+- Ontology changes after Phase 1 registration should be deliberate and re-validated against the graph
 
 ### Layer 2: Knowledge Graph (Neo4j)
 
@@ -49,30 +47,67 @@ separate database).
 - Always include `_source_file`, `_imported_at`, `_project_id` properties on nodes
 - Create indexes on frequently queried properties
 
-### Layer 3: Retrieval (GraphRAG)
+### Layer 3: Grounding (SDK)
 
 **What it does:** Provides structured context to LLM calls. When an agent needs to
-answer a question, GraphRAG traverses the knowledge graph and assembles relevant
-nodes and edges into a structured prompt context.
+answer a question, it queries the knowledge graph and assembles relevant nodes
+into prompt context before calling the LLM.
 
-**Where it lives:** Service layer between agents and Neo4j. Implemented in
-`grounding_service.py`.
+**Where it lives:** Implemented in the SDK via `GovernedBaseAgent._grounding_query()`
+and `ArkhitXClient.get_grounding_context()` (`framework/sdk/arkhitx/`).
 
 **Rules:**
-- LLMs never receive raw database dumps — they receive curated graph traversal results
-- Every retrieval includes the Cypher query used, so the path is auditable
-- Retrieval results are structured (JSON with node properties, relationship types,
-  path descriptions), not flattened text
-- The retrieval scope is defined by the agent's purpose — a supplier risk agent
-  retrieves supplier subgraphs, not the entire graph
+- LLMs never receive raw database dumps — they receive curated retrieval results
+- Every retrieval includes the query/index used, so the path is auditable
+- Retrieval results are structured JSON with node properties, not flattened text
+- The retrieval scope is defined per agent — override `_grounding_query()` in each
+  agent subclass; return `None` to skip grounding for that call
+- **Every non-`None` `_grounding_query()` must declare a `retrieval_strategy`.**
+  This is enforced structurally — `GovernedBaseAgent.call_llm()` raises
+  `ValueError` if it's missing or invalid. Graph traversal is never the silent
+  default; it must be a deliberate choice per agent, made against the table below.
+
+**Retrieval strategy selection — choose per agent, not once per project:**
+
+The "ask" each agent answers determines the right retrieval method. Classify
+the ask, then pick the strategy — don't default to graph traversal just
+because Neo4j is the knowledge store.
+
+| Ask pattern | Example | `retrieval_strategy` | Requires |
+|---|---|---|---|
+| Multi-hop relationships, lineage, impact | "What depends on X?" | `graph` | `entity_type`, optional `filters`/`depth` |
+| Exact record lookup, no traversal | "Fetch record by id" | `structured` | `entity_type`, `filters` |
+| Semantic similarity over unstructured text | "Find the record that means the same thing" | `vector` | `vector_index`, `query_embedding` |
+| Structural candidates ranked by meaning | "Narrow by relationship, rank by similarity" | `hybrid` | graph fields + `query_embedding` |
+
+Do this classification explicitly as part of Phase 3 wiring (see
+`04-AGENT-BUILD.md`, "Step 0") and document the choice + rationale per agent
+in the project's `docs/PHASE-3-GOVERNANCE.md`.
 
 **Implementation guidance for Cursor:**
-- Build retrieval functions per agent purpose (e.g., `retrieve_supplier_risk_context`,
-  `retrieve_order_status_context`)
-- Each function returns: `{ nodes: [...], edges: [...], query_path: "MATCH ...",
-  traversal_depth: N }`
-- Pass retrieval results as structured context in the agent's user message
-- Store the retrieval result hash in `grounding_records` for auditability
+- Override `_grounding_query()` per agent, e.g.
+  `{"entity_type": "...", "filters": {...}, "depth": n, "retrieval_strategy": "graph"}`
+- `GovernedBaseAgent.call_llm()` handles context injection, audit logging, and grounding scores automatically
+- `ArkhitXClient.get_grounding_context()` dispatches on `retrieval_strategy` — see `framework/sdk/arkhitx/client.py`
+- Store retrieval metadata in `grounding_records` via the SDK (no manual wiring needed)
+
+**Cross-cutting pattern: confidence-tiered human-in-the-loop gates**
+
+Many solutions need a mandatory human sign-off step before an AI-derived
+disposition takes effect (e.g. a migration/remediation/approval decision).
+This isn't a fifth layer — it's a Phase 0 solution-design pattern that Phase 3
+governance wires up:
+
+- In the solution (Phase 0): tier agent outputs by confidence (e.g. high/medium/low)
+  and require an explicit human decision before any tier's disposition is
+  considered final — never auto-apply a low-confidence AI judgment.
+- In governance (Phase 3): log every gate decision to the `gate_decisions`
+  table (see `GOVERNANCE-PRINCIPLES.md`) with `reviewer`, `decision`, and
+  `items_reviewed`/`items_modified` — the audit trail must show a human, not
+  just the model, approved the outcome.
+- This pattern was extracted from a working sign-off gate built in Phase 0 of
+  a real project, per the "ontology/patterns from working code" principle —
+  not designed speculatively up front.
 
 ### Layer 4: Governance (PostgreSQL)
 

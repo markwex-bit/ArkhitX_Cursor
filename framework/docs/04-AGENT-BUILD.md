@@ -10,6 +10,15 @@ Add ArkhitX governance **around the existing solution**: install `arkhitx-sdk`, 
 
 ## Steps
 
+0. **Choose a retrieval strategy per agent — before wiring `_grounding_query()`.**
+   For each agent, classify the kind of "ask" it answers (relationship/lineage,
+   exact lookup, semantic similarity, or structural-then-semantic) and pick
+   `graph`, `structured`, `vector`, or `hybrid` accordingly — see the decision
+   table in `ARCHITECTURE-PRINCIPLES.md` ("Layer 3: Grounding"). This is not
+   optional: `GovernedBaseAgent.call_llm()` raises `ValueError` if a grounding
+   spec omits `retrieval_strategy`. Record the choice and rationale for each
+   agent in the project's `docs/PHASE-3-GOVERNANCE.md` before moving to step 3.
+
 1. **Install the SDK** — Add the local package (or published wheel) from `ArkhitX_Cursor/sdk/` to the solution environment; ensure `anthropic` and `neo4j` dependencies match the SDK.
 
 2. **Detect ArkhitX at runtime** — In `base_agent.py` (or a single factory), if `ARKHITX_DATABASE_URL` and `ARKHITX_PROJECT_ID` are set, construct `ArkhitXClient(project_id=...)`; otherwise keep the pre-Phase-0 behavior (direct LLM, no audit).
@@ -41,10 +50,11 @@ class MappingAgent(GovernedBaseAgent):
             "entity_type": "AccountMapping",
             "filters": None,
             "depth": 1,
+            "retrieval_strategy": "graph",  # chosen in Step 0 above
         }
 ```
 
-4. **Override `_grounding_query` selectively** — Return `None` to skip graph context for that call. Return `{"entity_type": "...", "filters": {...}, "depth": n}` to pull context via `ArkhitXClient.get_grounding_context` (see `sdk/arkhitx/client.py`).
+4. **Override `_grounding_query` selectively** — Return `None` to skip grounding context for that call. Otherwise return a dict including the `retrieval_strategy` chosen in Step 0 (`graph`, `structured`, `vector`, or `hybrid`) plus that strategy's required fields — see `ArkhitXClient.get_grounding_context` (`sdk/arkhitx/client.py`) for exactly what each strategy needs. Omitting `retrieval_strategy` raises `ValueError` at call time.
 
 5. **Keep prompts in ArkhitX** — Seed and update rows in `agent_prompts` (registration script or UI). `GovernedBaseAgent` loads model parameters and system prompt from the DB when `agent_id` matches.
 

@@ -14,6 +14,7 @@ Deliver a working POC or MVP **without** ArkhitX. The code is the source of trut
 
 - Core user journeys run successfully in dev (or demo) environment.
 - Domain concepts exist in code: models, types, agent prompts in-repo, or equivalent—something Phase 1 can reverse-engineer into an ontology.
+- **Architecture docs exist:** `docs/ARCHITECTURE.md` + `docs/architecture-overview.html` (HTML-rendered Mermaid, no PNG).
 
 ## Handoff line
 

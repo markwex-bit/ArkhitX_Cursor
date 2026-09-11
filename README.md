@@ -5,6 +5,8 @@
 > ArkhitX adds audit trails, grounding scores, knowledge graph context, and
 > managed prompts to any AI solution — without changing how you build it.
 
+**Full methodology → [METHODOLOGY.md](METHODOLOGY.md)** (start here)
+
 ---
 
 ## What ArkhitX Is
@@ -45,17 +47,22 @@ docker-compose up -d
 
 ---
 
-## The Four-Phase Model
+## The Six-Phase Model
 
-| Phase | Name | What Happens |
-|---|---|---|
-| **0** | Build | Build the solution with Cursor. No ArkhitX involved. |
-| **1** | Register | Extract ontology from code. Register project. Seed agent prompts. |
-| **2** | Seed Graph | Populate Neo4j with domain entities from `seed_data.json`. |
-| **3** | Wire Governance | Agents inherit `GovernedBaseAgent`. Every LLM call is audited and grounded. |
+| Phase | Name | What Happens | Dashboard tracks? |
+|---|---|---|---|
+| **0** | Build | Build the solution with Cursor. No ArkhitX involved. | Files on disk |
+| **1** | Register | Extract ontology from code. Register project. Seed agent prompts. | Yes |
+| **2** | Populate Graph | Seed Neo4j with domain entities from `seed_data.json`. | Yes |
+| **3** | Wire Governance | Agents inherit `GovernedBaseAgent`. Every LLM call is audited and grounded. | Yes |
+| **4** | Validate Grounding | End-to-end QA. Confirm audit + grounding scores meet thresholds. | Manual |
+| **5** | Ship | Verify dual mode. Package handoff artifacts. | Manual |
 
-The **Phase Gate Validator** agent enforces entry conditions — a project cannot
-skip phases.
+The dashboard auto-detects progress through Phase 3. Phases 4–5 are consultant
+delivery sign-off. The **Phase Gate Validator** agent enforces entry conditions
+for Phases 1–3 — a project cannot skip integration phases.
+
+See [METHODOLOGY.md](METHODOLOGY.md) for the full build-first workflow.
 
 ---
 
@@ -238,3 +245,6 @@ See each project's own `README.md` for usage, agents, API endpoints, and samples
 | HR Policy Q&A | `projects/hr-policy-qa/` | [README](projects/hr-policy-qa/README.md) |
 | IT Incident Classifier | `projects/incident-classifier/` | [README](projects/incident-classifier/README.md) |
 | Supplier Risk Assessor | `projects/supplier-risk/` | [README](projects/supplier-risk/README.md) |
+| Stellantis AI BA Workbench | `projects/stellantis-ai-ba/` | [README](projects/stellantis-ai-ba/README.md) |
+| BurdenFree | `projects/burdenfree/` | [README](projects/burdenfree/README.md) |
+| Initiative Workbench | `projects/initiative-workbench/` | [README](projects/initiative-workbench/README.md) |

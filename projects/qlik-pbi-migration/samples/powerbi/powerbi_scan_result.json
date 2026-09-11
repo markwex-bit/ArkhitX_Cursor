@@ -1,0 +1,454 @@
+{
+  "workspaces": [
+    {
+      "id": "ws-001",
+      "name": "Sales & Revenue",
+      "type": "Workspace",
+      "state": "Active",
+      "datasetCount": 5,
+      "reportCount": 5,
+      "datasets": [
+        {
+          "id": "ds-001",
+          "name": "Regional Sales Performance",
+          "description": "Certified enterprise dataset for regional sales KPIs, refreshed nightly from the corporate sales data warehouse.",
+          "configuredBy": "jsmith@corp.com",
+          "createdDate": "2022-07-01T00:00:00.000Z",
+          "tables": [
+            { "name": "SalesFact", "columns": [{ "name": "SaleID", "dataType": "Int64" }, { "name": "Date", "dataType": "DateTime" }, { "name": "Amount", "dataType": "Decimal" }, { "name": "RegionID", "dataType": "Int64" }, { "name": "RepID", "dataType": "Int64" }] },
+            { "name": "CustomerDim", "columns": [{ "name": "CustomerID", "dataType": "Int64" }, { "name": "Name", "dataType": "String" }, { "name": "Region", "dataType": "String" }] },
+            { "name": "RegionDim", "columns": [{ "name": "RegionID", "dataType": "Int64" }, { "name": "RegionName", "dataType": "String" }] }
+          ],
+          "measures": [
+            { "name": "Total Revenue", "expression": "SUM(SalesFact[Amount])" },
+            { "name": "YoY Growth %", "expression": "DIVIDE([Total Revenue] - [Total Revenue PY], [Total Revenue PY])" },
+            { "name": "Units Sold", "expression": "COUNTROWS(SalesFact)" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "sqlwh01.corp.local", "database": "SALESDW_PROD" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Everyday"], "times": ["02:00"], "lastRefreshTime": "2026-09-08T02:10:00.000Z" },
+          "endorsementDetails": { "endorsement": "Certified" },
+          "sensitivityLabel": { "labelId": "lbl-internal", "displayName": "Internal" }
+        },
+        {
+          "id": "ds-002",
+          "name": "Sales Rep Scorecard",
+          "description": "Weekly scorecard of sales rep performance against quota.",
+          "configuredBy": "jsmith@corp.com",
+          "createdDate": "2023-01-15T00:00:00.000Z",
+          "tables": [
+            { "name": "SalesFact", "columns": [{ "name": "SaleID", "dataType": "Int64" }, { "name": "RepID", "dataType": "Int64" }, { "name": "Amount", "dataType": "Decimal" }] },
+            { "name": "EmployeeDim", "columns": [{ "name": "EmployeeID", "dataType": "Int64" }, { "name": "Name", "dataType": "String" }, { "name": "Region", "dataType": "String" }] }
+          ],
+          "measures": [
+            { "name": "Rep Revenue", "expression": "SUM(SalesFact[Amount])" },
+            { "name": "Deals Closed", "expression": "COUNTROWS(SalesFact)" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "sqlwh01.corp.local", "database": "SALESDW_PROD" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Mon"], "times": ["03:00"], "lastRefreshTime": "2026-09-02T03:05:00.000Z" },
+          "endorsementDetails": { "endorsement": "Promoted" }
+        },
+        {
+          "id": "ds-003",
+          "name": "Revenue Forecast Model",
+          "description": "Rolling revenue forecast blending sales actuals with the planning team's forecast inputs.",
+          "configuredBy": "afinance@corp.com",
+          "createdDate": "2023-04-10T00:00:00.000Z",
+          "tables": [
+            { "name": "SalesFact", "columns": [{ "name": "SaleID", "dataType": "Int64" }, { "name": "Amount", "dataType": "Decimal" }] },
+            { "name": "ForecastDim", "columns": [{ "name": "PeriodID", "dataType": "Int64" }, { "name": "ForecastAmount", "dataType": "Decimal" }] }
+          ],
+          "measures": [
+            { "name": "Forecast Revenue", "expression": "SUM(ForecastDim[ForecastAmount])" },
+            { "name": "Variance", "expression": "[Total Revenue] - [Forecast Revenue]" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "sqlwh01.corp.local", "database": "SALESDW_PROD" } },
+            { "datasourceType": "Sql", "connectionDetails": { "server": "planning01.corp.local", "database": "FORECAST_DB" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Sat"], "times": ["01:00"], "lastRefreshTime": "2026-08-15T01:10:00.000Z" }
+        },
+        {
+          "id": "ds-004",
+          "name": "Sales_Report_V2",
+          "configuredBy": "jsmith@corp.com",
+          "createdDate": "2021-09-01T00:00:00.000Z",
+          "tables": [
+            { "name": "SalesFact", "columns": [{ "name": "SaleID", "dataType": "Int64" }, { "name": "Amount", "dataType": "Decimal" }, { "name": "RegionID", "dataType": "Int64" }] },
+            { "name": "RegionDim", "columns": [{ "name": "RegionID", "dataType": "Int64" }, { "name": "RegionName", "dataType": "String" }] }
+          ],
+          "measures": [
+            { "name": "Total Revenue V2", "expression": "SUM(SalesFact[Amount])" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "sqlwh01.corp.local", "database": "SALESDW_PROD" } }
+          ],
+          "refreshSchedule": { "enabled": false, "lastRefreshTime": "2025-10-01T02:00:00.000Z" }
+        },
+        {
+          "id": "ds-005",
+          "name": "Q3 Deal Pipeline (Copy)",
+          "description": "Copy of Q3 pipeline dataset for ad hoc review.",
+          "configuredBy": "jsmith@corp.com",
+          "createdDate": "2026-01-10T00:00:00.000Z",
+          "tables": [
+            { "name": "Pipeline", "columns": [{ "name": "DealID", "dataType": "Int64" }, { "name": "Stage", "dataType": "String" }] }
+          ],
+          "measures": [
+            { "name": "Deal Count", "expression": "COUNTROWS(Pipeline)" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "crm01.corp.local", "database": "CRM_PIPELINE" } }
+          ],
+          "refreshSchedule": { "enabled": false, "lastRefreshTime": "2026-01-15T00:00:00.000Z" }
+        }
+      ],
+      "reports": [
+        { "id": "rp-001", "name": "Regional Sales Performance", "datasetId": "ds-001", "createdDateTime": "2022-07-02T00:00:00.000Z", "modifiedDateTime": "2026-09-08T02:15:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-002", "name": "Sales Rep Scorecard", "datasetId": "ds-002", "createdDateTime": "2023-01-16T00:00:00.000Z", "modifiedDateTime": "2026-09-02T03:10:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-003", "name": "Revenue Forecast Model", "datasetId": "ds-003", "createdDateTime": "2023-04-11T00:00:00.000Z", "modifiedDateTime": "2026-08-15T01:15:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-004", "name": "Sales_Report_V2", "datasetId": "ds-004", "createdDateTime": "2021-09-02T00:00:00.000Z", "modifiedDateTime": "2025-10-01T02:05:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-005", "name": "Q3 Deal Pipeline (Copy)", "datasetId": "ds-005", "createdDateTime": "2026-01-10T00:05:00.000Z", "modifiedDateTime": "2026-01-15T00:05:00.000Z", "reportType": "PowerBIReport" }
+      ]
+    },
+    {
+      "id": "ws-002",
+      "name": "Finance Ops",
+      "type": "Workspace",
+      "state": "Active",
+      "datasetCount": 4,
+      "reportCount": 4,
+      "datasets": [
+        {
+          "id": "ds-006",
+          "name": "Finance Operations Dashboard",
+          "description": "Certified financial operations dashboard covering GL, AP, and AR balances.",
+          "configuredBy": "cfo-team@corp.com",
+          "createdDate": "2022-02-01T00:00:00.000Z",
+          "tables": [
+            { "name": "GLFact", "columns": [{ "name": "GLID", "dataType": "Int64" }, { "name": "Amount", "dataType": "Decimal" }] },
+            { "name": "APFact", "columns": [{ "name": "APID", "dataType": "Int64" }, { "name": "Amount", "dataType": "Decimal" }] },
+            { "name": "ARFact", "columns": [{ "name": "ARID", "dataType": "Int64" }, { "name": "Amount", "dataType": "Decimal" }] }
+          ],
+          "measures": [
+            { "name": "Net Income", "expression": "SUM(GLFact[Amount])" },
+            { "name": "AP Balance", "expression": "SUM(APFact[Amount])" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "findw01.corp.local", "database": "FINANCE_DW" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Everyday"], "times": ["04:00"], "lastRefreshTime": "2026-09-07T04:05:00.000Z" },
+          "endorsementDetails": { "endorsement": "Certified" },
+          "sensitivityLabel": { "labelId": "lbl-confidential", "displayName": "Confidential" }
+        },
+        {
+          "id": "ds-007",
+          "name": "Budget vs Actuals",
+          "description": "Monthly budget-to-actuals variance by cost center.",
+          "configuredBy": "cfo-team@corp.com",
+          "createdDate": "2022-05-01T00:00:00.000Z",
+          "tables": [
+            { "name": "GLFact", "columns": [{ "name": "GLID", "dataType": "Int64" }, { "name": "Amount", "dataType": "Decimal" }] },
+            { "name": "BudgetFact", "columns": [{ "name": "BudgetID", "dataType": "Int64" }, { "name": "PlannedAmount", "dataType": "Decimal" }] }
+          ],
+          "measures": [
+            { "name": "Budget Variance", "expression": "SUM(GLFact[Amount]) - SUM(BudgetFact[PlannedAmount])" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "findw01.corp.local", "database": "FINANCE_DW" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Mon"], "times": ["05:00"], "lastRefreshTime": "2026-08-30T05:00:00.000Z" },
+          "endorsementDetails": { "endorsement": "Promoted" }
+        },
+        {
+          "id": "ds-008",
+          "name": "AP Aging Report",
+          "configuredBy": "ap-team@corp.com",
+          "createdDate": "2021-03-01T00:00:00.000Z",
+          "tables": [
+            { "name": "APFact", "columns": [{ "name": "APID", "dataType": "Int64" }, { "name": "DueDate", "dataType": "DateTime" }, { "name": "Amount", "dataType": "Decimal" }] }
+          ],
+          "measures": [
+            { "name": "Aging Bucket", "expression": "SWITCH(TRUE(), ...)" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "findw01.corp.local", "database": "FINANCE_DW" } }
+          ]
+        },
+        {
+          "id": "ds-009",
+          "name": "Sales Report (Final)",
+          "configuredBy": "afinance@corp.com",
+          "createdDate": "2021-01-15T00:00:00.000Z",
+          "tables": [
+            { "name": "SalesFact", "columns": [{ "name": "SaleID", "dataType": "Int64" }, { "name": "Amount", "dataType": "Decimal" }, { "name": "RegionID", "dataType": "Int64" }] },
+            { "name": "RegionDim", "columns": [{ "name": "RegionID", "dataType": "Int64" }, { "name": "RegionName", "dataType": "String" }] }
+          ],
+          "measures": [
+            { "name": "Total Revenue Final", "expression": "SUM(SalesFact[Amount])" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "sqlwh01.corp.local", "database": "SALESDW_PROD" } }
+          ],
+          "refreshSchedule": { "enabled": false, "lastRefreshTime": "2025-09-01T00:00:00.000Z" }
+        }
+      ],
+      "reports": [
+        { "id": "rp-006", "name": "Finance Operations Dashboard", "datasetId": "ds-006", "createdDateTime": "2022-02-02T00:00:00.000Z", "modifiedDateTime": "2026-09-07T04:10:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-007", "name": "Budget vs Actuals", "datasetId": "ds-007", "createdDateTime": "2022-05-02T00:00:00.000Z", "modifiedDateTime": "2026-08-30T05:05:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-008", "name": "AP Aging Report", "datasetId": "ds-008", "createdDateTime": "2021-03-02T00:00:00.000Z", "modifiedDateTime": "2022-04-01T00:00:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-009", "name": "Sales Report (Final)", "datasetId": "ds-009", "createdDateTime": "2021-01-16T00:00:00.000Z", "modifiedDateTime": "2025-09-01T00:05:00.000Z", "reportType": "PowerBIReport" }
+      ]
+    },
+    {
+      "id": "ws-003",
+      "name": "Marketing Analytics",
+      "type": "Workspace",
+      "state": "Active",
+      "datasetCount": 3,
+      "reportCount": 3,
+      "datasets": [
+        {
+          "id": "ds-010",
+          "name": "Campaign Performance",
+          "description": "Certified campaign ROI and lead conversion tracking dataset.",
+          "configuredBy": "mktg-team@corp.com",
+          "createdDate": "2022-09-01T00:00:00.000Z",
+          "tables": [
+            { "name": "CampaignFact", "columns": [{ "name": "CampaignID", "dataType": "Int64" }, { "name": "Spend", "dataType": "Decimal" }] },
+            { "name": "LeadDim", "columns": [{ "name": "LeadID", "dataType": "Int64" }, { "name": "Converted", "dataType": "Boolean" }] }
+          ],
+          "measures": [
+            { "name": "ROAS", "expression": "DIVIDE([Revenue], SUM(CampaignFact[Spend]))" },
+            { "name": "Lead Conversion", "expression": "DIVIDE(COUNTROWS(FILTER(LeadDim, LeadDim[Converted])), COUNTROWS(LeadDim))" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "mktgdw01.corp.local", "database": "MARKETING_DW" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Everyday"], "times": ["06:00"], "lastRefreshTime": "2026-09-01T06:05:00.000Z" },
+          "endorsementDetails": { "endorsement": "Certified" }
+        },
+        {
+          "id": "ds-011",
+          "name": "Web Traffic Analysis",
+          "description": "Website session and bounce-rate analysis fed from the web analytics API.",
+          "configuredBy": "mktg-team@corp.com",
+          "createdDate": "2023-02-01T00:00:00.000Z",
+          "tables": [
+            { "name": "WebAnalyticsFact", "columns": [{ "name": "SessionID", "dataType": "Int64" }, { "name": "BounceFlag", "dataType": "Boolean" }] }
+          ],
+          "measures": [
+            { "name": "Session Count", "expression": "COUNTROWS(WebAnalyticsFact)" },
+            { "name": "Bounce Rate", "expression": "DIVIDE(COUNTROWS(FILTER(WebAnalyticsFact, WebAnalyticsFact[BounceFlag])), COUNTROWS(WebAnalyticsFact))" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Web", "connectionDetails": { "url": "https://analytics.corp.com/api" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Everyday"], "times": ["07:00"], "lastRefreshTime": "2026-08-25T07:00:00.000Z" }
+        },
+        {
+          "id": "ds-012",
+          "name": "Marketing_Test_Report",
+          "configuredBy": "mktg-team@corp.com",
+          "createdDate": "2026-08-01T00:00:00.000Z",
+          "tables": [
+            { "name": "CampaignFact", "columns": [{ "name": "CampaignID", "dataType": "Int64" }] }
+          ],
+          "measures": [
+            { "name": "Test Metric", "expression": "COUNTROWS(CampaignFact)" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "mktgdw01.corp.local", "database": "MARKETING_DW" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Everyday"], "times": ["07:30"], "lastRefreshTime": "2026-09-03T07:35:00.000Z" }
+        }
+      ],
+      "reports": [
+        { "id": "rp-010", "name": "Campaign Performance", "datasetId": "ds-010", "createdDateTime": "2022-09-02T00:00:00.000Z", "modifiedDateTime": "2026-09-01T06:10:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-011", "name": "Web Traffic Analysis", "datasetId": "ds-011", "createdDateTime": "2023-02-02T00:00:00.000Z", "modifiedDateTime": "2026-08-25T07:05:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-012", "name": "Marketing_Test_Report", "datasetId": "ds-012", "createdDateTime": "2026-08-01T00:05:00.000Z", "modifiedDateTime": "2026-09-03T07:40:00.000Z", "reportType": "PowerBIReport" }
+      ]
+    },
+    {
+      "id": "ws-004",
+      "name": "Operations",
+      "type": "Workspace",
+      "state": "Active",
+      "datasetCount": 3,
+      "reportCount": 2,
+      "datasets": [
+        {
+          "id": "ds-013",
+          "name": "Regional Ops KPI Tracker",
+          "description": "Facility-level uptime and cost-per-unit tracking, refreshed from the ops fileshare extract.",
+          "configuredBy": "ops-team@corp.com",
+          "createdDate": "2022-10-01T00:00:00.000Z",
+          "tables": [
+            { "name": "OpsMetricsFact", "columns": [{ "name": "MetricID", "dataType": "Int64" }, { "name": "Value", "dataType": "Decimal" }, { "name": "RegionID", "dataType": "Int64" }] },
+            { "name": "RegionDim", "columns": [{ "name": "RegionID", "dataType": "Int64" }, { "name": "RegionName", "dataType": "String" }] }
+          ],
+          "measures": [
+            { "name": "Uptime %", "expression": "AVERAGE(OpsMetricsFact[Value])" },
+            { "name": "Cost Per Unit", "expression": "SUM(OpsMetricsFact[Value])" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "File", "connectionDetails": { "path": "\\\\fileserver\\ops\\OPS_FILESHARE" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Everyday"], "times": ["05:30"], "lastRefreshTime": "2026-09-04T05:35:00.000Z" },
+          "endorsementDetails": { "endorsement": "Promoted" }
+        },
+        {
+          "id": "ds-014",
+          "name": "Supply Chain Dashboard",
+          "description": "On-time delivery and inventory tracking across distribution centers.",
+          "configuredBy": "ops-team@corp.com",
+          "createdDate": "2022-11-01T00:00:00.000Z",
+          "tables": [
+            { "name": "InventoryFact", "columns": [{ "name": "SKU", "dataType": "String" }, { "name": "QtyOnHand", "dataType": "Int64" }] },
+            { "name": "ShippingFact", "columns": [{ "name": "ShipmentID", "dataType": "Int64" }, { "name": "OnTime", "dataType": "Boolean" }] }
+          ],
+          "measures": [
+            { "name": "On-Time Delivery %", "expression": "DIVIDE(COUNTROWS(FILTER(ShippingFact, ShippingFact[OnTime])), COUNTROWS(ShippingFact))" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "opsdw01.corp.local", "database": "SUPPLY_CHAIN_DW" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Everyday"], "times": ["05:45"], "lastRefreshTime": "2026-08-10T05:50:00.000Z" }
+        },
+        {
+          "id": "ds-015",
+          "name": "Warehouse Utilization",
+          "configuredBy": "ops-team@corp.com",
+          "createdDate": "2021-07-01T00:00:00.000Z",
+          "tables": [
+            { "name": "WarehouseFact", "columns": [{ "name": "WarehouseID", "dataType": "Int64" }, { "name": "UsedCapacity", "dataType": "Decimal" }] }
+          ],
+          "measures": [
+            { "name": "Utilization %", "expression": "AVERAGE(WarehouseFact[UsedCapacity])" }
+          ],
+          "datasourceUsages": [],
+          "refreshSchedule": { "enabled": true, "days": ["Everyday"], "times": ["06:15"], "lastRefreshTime": "2026-07-01T06:20:00.000Z" }
+        }
+      ],
+      "reports": [
+        { "id": "rp-013", "name": "Regional Ops KPI Tracker", "datasetId": "ds-013", "createdDateTime": "2022-10-02T00:00:00.000Z", "modifiedDateTime": "2026-09-04T05:40:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-015", "name": "Warehouse Utilization", "datasetId": "ds-015", "createdDateTime": "2021-07-02T00:00:00.000Z", "modifiedDateTime": "2026-07-01T06:25:00.000Z", "reportType": "PowerBIReport" }
+      ]
+    },
+    {
+      "id": "ws-005",
+      "name": "HR Analytics",
+      "type": "Workspace",
+      "state": "Active",
+      "datasetCount": 2,
+      "reportCount": 2,
+      "datasets": [
+        {
+          "id": "ds-016",
+          "name": "Headcount & Attrition",
+          "description": "Certified HR dataset tracking headcount and attrition trends by department.",
+          "configuredBy": "hr-team@corp.com",
+          "createdDate": "2022-01-01T00:00:00.000Z",
+          "tables": [
+            { "name": "HRISFact", "columns": [{ "name": "EmployeeID", "dataType": "Int64" }, { "name": "Status", "dataType": "String" }, { "name": "Department", "dataType": "String" }] }
+          ],
+          "measures": [
+            { "name": "Headcount Total", "expression": "COUNTROWS(FILTER(HRISFact, HRISFact[Status] = \"Active\"))" },
+            { "name": "Attrition Rate", "expression": "DIVIDE(COUNTROWS(FILTER(HRISFact, HRISFact[Status] = \"Terminated\")), COUNTROWS(HRISFact))" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "hrdw01.corp.local", "database": "HR_DW" } }
+          ],
+          "refreshSchedule": { "enabled": true, "days": ["Everyday"], "times": ["08:00"], "lastRefreshTime": "2026-09-06T08:05:00.000Z" },
+          "endorsementDetails": { "endorsement": "Certified" },
+          "sensitivityLabel": { "labelId": "lbl-confidential", "displayName": "Confidential" }
+        },
+        {
+          "id": "ds-017",
+          "name": "Compensation Review Sandbox",
+          "description": "Sandbox copy used for the annual comp review cycle.",
+          "configuredBy": "hr-team@corp.com",
+          "createdDate": "2026-05-15T00:00:00.000Z",
+          "tables": [
+            { "name": "CompFact", "columns": [{ "name": "EmployeeID", "dataType": "Int64" }, { "name": "Salary", "dataType": "Decimal" }] }
+          ],
+          "measures": [
+            { "name": "Median Salary", "expression": "MEDIAN(CompFact[Salary])" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "hrdw01.corp.local", "database": "HR_DW" } }
+          ],
+          "refreshSchedule": { "enabled": false, "lastRefreshTime": "2026-06-01T00:00:00.000Z" }
+        }
+      ],
+      "reports": [
+        { "id": "rp-016", "name": "Headcount & Attrition", "datasetId": "ds-016", "createdDateTime": "2022-01-02T00:00:00.000Z", "modifiedDateTime": "2026-09-06T08:10:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-017", "name": "Compensation Review Sandbox", "datasetId": "ds-017", "createdDateTime": "2026-05-15T00:05:00.000Z", "modifiedDateTime": "2026-06-01T00:05:00.000Z", "reportType": "PowerBIReport" }
+      ]
+    },
+    {
+      "id": "ws-006",
+      "name": "Personal Workspace - jdoe",
+      "type": "PersonalGroup",
+      "state": "Active",
+      "datasetCount": 3,
+      "reportCount": 3,
+      "datasets": [
+        {
+          "id": "ds-018",
+          "name": "My Sales Copy",
+          "configuredBy": "jdoe@corp.com",
+          "createdDate": "2026-04-20T00:00:00.000Z",
+          "tables": [
+            { "name": "SalesFact", "columns": [{ "name": "SaleID", "dataType": "Int64" }, { "name": "Amount", "dataType": "Decimal" }] }
+          ],
+          "measures": [
+            { "name": "Revenue Copy", "expression": "SUM(SalesFact[Amount])" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "sqlwh01.corp.local", "database": "SALESDW_PROD" } }
+          ],
+          "refreshSchedule": { "enabled": false, "lastRefreshTime": "2026-05-01T00:00:00.000Z" }
+        },
+        {
+          "id": "ds-019",
+          "name": "Draft Report",
+          "configuredBy": "jdoe@corp.com",
+          "createdDate": "2026-03-25T00:00:00.000Z",
+          "tables": [
+            { "name": "Misc", "columns": [{ "name": "ID", "dataType": "Int64" }] }
+          ],
+          "measures": [
+            { "name": "Test Value", "expression": "COUNTROWS(Misc)" }
+          ],
+          "datasourceUsages": [],
+          "refreshSchedule": { "enabled": false, "lastRefreshTime": "2026-04-01T00:00:00.000Z" }
+        },
+        {
+          "id": "ds-020",
+          "name": "Old Test Analysis",
+          "configuredBy": "jdoe@corp.com",
+          "createdDate": "2020-12-01T00:00:00.000Z",
+          "tables": [
+            { "name": "Misc", "columns": [{ "name": "ID", "dataType": "Int64" }] }
+          ],
+          "measures": [
+            { "name": "Old Metric", "expression": "COUNTROWS(Misc)" }
+          ],
+          "datasourceUsages": [
+            { "datasourceType": "Sql", "connectionDetails": { "server": "legacy01.corp.local", "database": "LEGACY_DB" } }
+          ],
+          "refreshSchedule": { "enabled": false, "lastRefreshTime": "2024-01-01T00:00:00.000Z" }
+        }
+      ],
+      "reports": [
+        { "id": "rp-018", "name": "My Sales Copy", "datasetId": "ds-018", "createdDateTime": "2026-04-20T00:05:00.000Z", "modifiedDateTime": "2026-05-01T00:05:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-019", "name": "Draft Report", "datasetId": "ds-019", "createdDateTime": "2026-03-25T00:05:00.000Z", "modifiedDateTime": "2026-04-01T00:05:00.000Z", "reportType": "PowerBIReport" },
+        { "id": "rp-020", "name": "Old Test Analysis", "datasetId": "ds-020", "createdDateTime": "2020-12-02T00:05:00.000Z", "modifiedDateTime": "2024-01-01T00:05:00.000Z", "reportType": "PowerBIReport" }
+      ]
+    }
+  ]
+}

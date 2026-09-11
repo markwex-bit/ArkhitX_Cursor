@@ -21,6 +21,18 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 
 
+def _cosine_similarity(a: list[float], b: list[float]) -> float:
+    """Pure-Python cosine similarity (no numpy dependency in the SDK)."""
+    if not a or not b or len(a) != len(b):
+        return 0.0
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = sum(x * x for x in a) ** 0.5
+    norm_b = sum(y * y for y in b) ** 0.5
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
+
+
 class ArkhitXClient:
     """
     Single entry point for connecting a solution project to ArkhitX
@@ -212,16 +224,43 @@ class ArkhitXClient:
 
     def get_grounding_context(
         self,
-        entity_type: str,
+        entity_type: str | None = None,
         filters: dict | None = None,
         depth: int = 1,
+        *,
+        retrieval_strategy: str = "graph",
+        vector_index: str | None = None,
+        query_embedding: list[float] | None = None,
+        top_k: int = 5,
     ) -> dict:
         """
-        Retrieve grounding context from the knowledge graph for an entity type.
-        Returns nodes, edges, query path, and node count.
+        Retrieve grounding context from the knowledge graph.
+
+        Dispatches on `retrieval_strategy` (see GovernedBaseAgent._grounding_query
+        for the full decision guide):
+          - "graph"      relationship traversal (existing default behavior)
+          - "structured" exact-match fetch, no relationship traversal
+          - "vector"     Neo4j native vector index similarity search
+          - "hybrid"     graph traversal, reranked by embedding similarity
+
+        Always returns nodes, edges, query path, and node count.
         """
+        if retrieval_strategy == "vector":
+            return self._vector_grounding(vector_index, query_embedding, top_k)
+        if retrieval_strategy == "hybrid":
+            return self._hybrid_grounding(
+                entity_type, filters, depth, query_embedding, top_k
+            )
+        if retrieval_strategy == "structured":
+            return self._graph_grounding(entity_type, filters, depth=0)
+        return self._graph_grounding(entity_type, filters, depth)
+
+    def _graph_grounding(
+        self, entity_type: str, filters: dict | None, depth: int
+    ) -> dict:
+        """Strategy: 'graph' (traversal) and 'structured' (depth=0, exact match)."""
         where_clauses = []
-        params = {}
+        params: dict[str, Any] = {}
         if filters:
             for i, (key, value) in enumerate(filters.items()):
                 param_name = f"p{i}"
@@ -230,16 +269,20 @@ class ArkhitXClient:
 
         where_str = " AND ".join(where_clauses)
         where_line = f"WHERE {where_str}" if where_str else ""
+        traversal = "OPTIONAL MATCH (e)-[r]-(related)" if depth > 0 else ""
+        related_return = (
+            "type(r) AS rel_type, labels(related) AS related_labels, properties(related) AS related_props"
+            if depth > 0
+            else "NULL AS rel_type, NULL AS related_labels, NULL AS related_props"
+        )
 
         cypher = f"""
             MATCH (e:{entity_type}) {where_line}
-            OPTIONAL MATCH (e)-[r]-(related)
+            {traversal}
             RETURN
                 labels(e) AS entity_labels,
                 properties(e) AS entity_props,
-                type(r) AS rel_type,
-                labels(related) AS related_labels,
-                properties(related) AS related_props
+                {related_return}
         """
 
         raw_results = self.query_graph(cypher, params)
@@ -263,6 +306,90 @@ class ArkhitXClient:
             "query_path": cypher.strip(),
             "node_count": len(nodes),
             "raw_results": raw_results,
+        }
+
+    def _vector_grounding(
+        self,
+        vector_index: str | None,
+        query_embedding: list[float] | None,
+        top_k: int,
+    ) -> dict:
+        """
+        Strategy: 'vector'. Requires a Neo4j native vector index already
+        created on the target node label/property (see
+        framework/docs/03-GRAPH-POPULATION.md) and a precomputed query
+        embedding — the SDK does not generate embeddings itself, since the
+        embedding model choice is a project-level decision.
+        """
+        if not vector_index or not query_embedding:
+            raise ValueError(
+                "retrieval_strategy='vector' requires both 'vector_index' and "
+                "'query_embedding' in the grounding spec."
+            )
+
+        cypher = """
+            CALL db.index.vector.queryNodes($index_name, $top_k, $embedding)
+            YIELD node, score
+            RETURN properties(node) AS entity_props, score
+        """
+        params = {
+            "index_name": vector_index,
+            "top_k": top_k,
+            "embedding": query_embedding,
+        }
+        raw_results = self.query_graph(cypher, params)
+
+        nodes = []
+        for record in raw_results:
+            props = dict(record.get("entity_props") or {})
+            props["_similarity"] = record.get("score")
+            nodes.append(props)
+
+        return {
+            "nodes": nodes,
+            "query_path": cypher.strip(),
+            "node_count": len(nodes),
+            "raw_results": raw_results,
+        }
+
+    def _hybrid_grounding(
+        self,
+        entity_type: str,
+        filters: dict | None,
+        depth: int,
+        query_embedding: list[float] | None,
+        top_k: int,
+    ) -> dict:
+        """
+        Strategy: 'hybrid'. Runs graph traversal to get structurally relevant
+        candidates, then reranks by cosine similarity against each node's
+        `embedding` property (if present) and keeps the top_k. Falls back to
+        unranked graph results if no query_embedding is supplied or no
+        candidate nodes carry an `embedding` property.
+        """
+        graph_result = self._graph_grounding(entity_type, filters, depth)
+        if not query_embedding:
+            return graph_result
+
+        scored = []
+        unscored = []
+        for node in graph_result["nodes"]:
+            embedding = node.get("embedding")
+            if embedding:
+                node = dict(node)
+                node["_similarity"] = _cosine_similarity(query_embedding, embedding)
+                scored.append(node)
+            else:
+                unscored.append(node)
+
+        scored.sort(key=lambda n: n["_similarity"], reverse=True)
+        ranked_nodes = scored[:top_k] + unscored[: max(0, top_k - len(scored))]
+
+        return {
+            "nodes": ranked_nodes,
+            "query_path": graph_result["query_path"] + "\n-- reranked by embedding cosine similarity",
+            "node_count": len(ranked_nodes),
+            "raw_results": graph_result["raw_results"],
         }
 
     # ── Cleanup ─────────────────────────────────────────────────────────────

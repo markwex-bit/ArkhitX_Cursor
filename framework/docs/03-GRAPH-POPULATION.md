@@ -21,6 +21,23 @@ Pick one approach and apply it in every Cypher query:
 - Chunk large files; wrap batches in a single session/transaction pattern appropriate to your Neo4j driver usage.
 - Use `ArkhitXClient.write_graph` with parameters—never string-concatenate user or file data into Cypher.
 
+## Staleness policy (graph and vector retrieval)
+
+Grounded answers degrade silently if the Neo4j graph — or a vector index built
+on it — goes stale relative to the source system. Define this explicitly per
+project rather than assuming re-import cadence is obvious:
+
+- Stamp every node/relationship with `_last_synced_at` on import (already
+  required by `ARCHITECTURE-PRINCIPLES.md`'s `_imported_at` convention).
+- Pick a staleness threshold per entity type (e.g. 24h for fast-changing data,
+  30 days for reference data) and record it in the project's ontology doc.
+- If using `retrieval_strategy: vector` or `hybrid`, the vector index is a
+  second staleness surface — re-embed and rebuild the index on the same cadence
+  as the underlying node re-import, not on a separate schedule.
+- Surface staleness in the grounding response where practical (e.g. include
+  `_last_synced_at` in cited node properties) so a stale-but-plausible answer
+  is distinguishable from a fresh one during Phase 4 validation.
+
 ## Post-import checks
 
 ```cypher
