@@ -147,24 +147,29 @@ class GovernedBaseAgent(ABC):
         """
         start_time = time.time()
         graph_context = None
+        resolved_strategy: str | None = None
 
         if self.arkhitx:
             grounding_spec = self._grounding_query(user_message)
             if grounding_spec:
-                strategy = grounding_spec.get("retrieval_strategy")
-                if strategy not in RETRIEVAL_STRATEGIES:
+                spec_strategy = grounding_spec.get("retrieval_strategy")
+                resolved_strategy = self.arkhitx.resolve_agent_retrieval_strategy(
+                    self.agent_id or "unknown",
+                    spec_strategy,
+                )
+                if resolved_strategy not in RETRIEVAL_STRATEGIES:
                     raise ValueError(
                         f"{self.__class__.__name__}._grounding_query() returned a "
                         f"grounding spec without a valid 'retrieval_strategy' "
-                        f"(got {strategy!r}, must be one of {sorted(RETRIEVAL_STRATEGIES)}). "
-                        "Choosing a retrieval strategy is a required design decision — "
+                        f"(got {resolved_strategy!r}, must be one of {sorted(RETRIEVAL_STRATEGIES)}). "
+                        "Set retrieval_strategy on the project or in _grounding_query() — "
                         "see framework/docs/ARCHITECTURE-PRINCIPLES.md."
                     )
                 graph_context = self.arkhitx.get_grounding_context(
                     entity_type=grounding_spec.get("entity_type"),
                     filters=grounding_spec.get("filters"),
                     depth=grounding_spec.get("depth", 1),
-                    retrieval_strategy=strategy,
+                    retrieval_strategy=resolved_strategy,
                     vector_index=grounding_spec.get("vector_index"),
                     query_embedding=grounding_spec.get("query_embedding"),
                     top_k=grounding_spec.get("top_k", 5),
@@ -186,6 +191,9 @@ class GovernedBaseAgent(ABC):
         )
         response_text = response.content[0].text
         elapsed_ms = int((time.time() - start_time) * 1000)
+        usage = getattr(response, "usage", None)
+        input_tokens = getattr(usage, "input_tokens", 0) if usage else 0
+        output_tokens = getattr(usage, "output_tokens", 0) if usage else 0
 
         if self.arkhitx:
             grounding_score = 0.0
@@ -200,7 +208,7 @@ class GovernedBaseAgent(ABC):
                     for n in graph_context["nodes"]
                 ]
 
-            self.arkhitx.log_audit(
+            audit_id = self.arkhitx.log_audit(
                 actor=f"agent:{self.agent_id}",
                 action="llm_call",
                 context={
@@ -210,11 +218,38 @@ class GovernedBaseAgent(ABC):
                     "input_length": len(user_message),
                     "elapsed_ms": elapsed_ms,
                     "grounding_score": grounding_score,
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "retrieval_strategy": resolved_strategy,
+                    "stage": grounding_spec.get("stage") if grounding_spec else "Agent Activity",
+                    "step_name": f"{self.agent_id} — LLM call",
+                    "step_type": "LLM",
                 },
                 result={
                     "output_length": len(response_text),
                     "response_preview": response_text[:500],
                 },
+            )
+
+            stage_name = grounding_spec.get("stage") if grounding_spec else "Agent Activity"
+            process_group = grounding_spec.get("process_group") if grounding_spec else ""
+            self.arkhitx.log_pipeline_step(
+                step_name=f"{self.agent_id} — LLM call",
+                status="completed",
+                stage=stage_name,
+                process_group=process_group or None,
+                agent=self.agent_id,
+                step_type="LLM",
+                output_summary={
+                    "audit_id": audit_id,
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "grounding_score": grounding_score,
+                    "confidence": grounding_score,
+                    "response_preview": response_text[:200],
+                    "summary": response_text[:200] if response_text else f"Grounding {grounding_score:.0%}",
+                },
+                duration_ms=elapsed_ms,
             )
 
             self.arkhitx.store_grounding(
@@ -224,6 +259,14 @@ class GovernedBaseAgent(ABC):
                 cited_nodes=cited_nodes,
                 response_summary=response_text[:300],
             )
+            if input_tokens or output_tokens:
+                self.arkhitx.log_llm_usage(
+                    agent_name=self.agent_id or "unknown",
+                    model=self.model,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    duration_ms=elapsed_ms,
+                )
 
         return response_text
 

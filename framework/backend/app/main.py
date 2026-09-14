@@ -11,6 +11,7 @@ from app.api.upload import router as upload_router
 from app.api.applications import router as applications_router
 from app.api.agents import router as agents_router
 from app.api.architecture import router as architecture_router
+from app.api.admin.data_tables import router as admin_data_router
 
 
 @asynccontextmanager
@@ -41,6 +42,7 @@ app.include_router(upload_router, prefix="/api/upload", tags=["upload"])
 app.include_router(applications_router, prefix="/api/applications", tags=["applications"])
 app.include_router(agents_router, prefix="/api/agents", tags=["agents"])
 app.include_router(architecture_router, prefix="/api/projects", tags=["architecture"])
+app.include_router(admin_data_router, prefix="/api", tags=["admin"])
 
 
 @app.get("/health")

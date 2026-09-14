@@ -348,7 +348,7 @@ def draft_all_documents(db, project: Project, regenerate: bool) -> None:
     log_audit(
         db, project_id=str(project.id), actor="script:reverse_engineer_qlik_pbi",
         action="architecture_documents_reverse_engineered",
-        context={"tier": "full", "regenerate": regenerate},
+        context={"scope": "framework", "tier": "full", "regenerate": regenerate},
     )
 
 

@@ -18,11 +18,12 @@ def get_db():
 def init_db():
     from app.models import (  # noqa: F401
         project, agent_prompt, audit_log, grounding_record, pipeline_event, client,
-        architecture_document, architecture_decision,
+        architecture_document, architecture_decision, gate_decision, llm_usage_log,
     )
     Base.metadata.create_all(bind=engine)
     _migrate_agent_prompts()
     _migrate_project_architecture_columns()
+    _migrate_governance_rebuild()
 
 
 def _migrate_project_architecture_columns():
@@ -89,3 +90,24 @@ def _migrate_agent_prompts():
             """)
         )
         conn.commit()
+
+
+def _migrate_governance_rebuild():
+    """Sprint 1 governance rebuild: retrieval_strategy column + indexes."""
+    with engine.connect() as conn:
+        try:
+            conn.execute(text(
+                "ALTER TABLE projects ADD COLUMN IF NOT EXISTS retrieval_strategy JSONB DEFAULT '{}'"
+            ))
+            conn.commit()
+        except Exception:
+            conn.rollback()
+        for stmt in (
+            "CREATE INDEX IF NOT EXISTS idx_gate_decisions_project ON gate_decisions(project_id)",
+            "CREATE INDEX IF NOT EXISTS idx_llm_usage_project ON llm_usage_logs(project_id)",
+        ):
+            try:
+                conn.execute(text(stmt))
+                conn.commit()
+            except Exception:
+                conn.rollback()

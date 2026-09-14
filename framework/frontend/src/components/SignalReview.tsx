@@ -7,17 +7,17 @@ interface Props {
 
 const SIGNAL_COLORS: Record<string, string> = {
   DC: 'bg-purple-100 text-purple-700',
-  PS: 'bg-red-100 text-red-700',
+  PS: 'bg-red-100 text-red-400',
   BI: 'bg-yellow-100 text-yellow-700',
-  DN: 'bg-blue-100 text-blue-700',
-  CP: 'bg-green-100 text-green-700',
-  BQ: 'bg-indigo-100 text-indigo-700',
+  DN: 'bg-ax-primary/20 text-ax-primary-light',
+  CP: 'bg-emerald-500/15 text-emerald-400',
+  BQ: 'bg-ax-primary/20 text-ax-primary-light',
   PG: 'bg-orange-100 text-orange-700',
 }
 
 function SignalBadge({ id }: { id: string }) {
   const prefix = id.replace(/[0-9]/g, '')
-  const color = SIGNAL_COLORS[prefix] || 'bg-gray-100 text-gray-700'
+  const color = SIGNAL_COLORS[prefix] || 'bg-ax-bg-3 text-ax-text-dim'
   return <span className={`inline-flex px-2 py-0.5 rounded text-xs font-mono font-medium ${color}`}>{id}</span>
 }
 
@@ -27,15 +27,15 @@ function SignalGroup({ title, icon, signals }: { title: string; icon: React.Reac
     <div>
       <div className="flex items-center gap-2 mb-2">
         {icon}
-        <h4 className="text-sm font-semibold text-gray-700">{title} ({signals.length})</h4>
+        <h4 className="text-sm font-semibold text-ax-text-dim">{title} ({signals.length})</h4>
       </div>
       <div className="space-y-2">
         {signals.map((signal) => (
-          <div key={signal.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+          <div key={signal.id} className="flex items-start gap-3 p-3 bg-ax-bg-3 rounded-lg">
             <SignalBadge id={signal.id} />
             <div className="flex-1">
-              <p className="text-sm text-gray-800">{signal.text}</p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-sm text-ax-text">{signal.text}</p>
+              <p className="text-xs text-ax-text-muted mt-1">
                 Source: {signal.source}
                 {signal.derived && ' (derived)'}
               </p>
@@ -50,17 +50,17 @@ function SignalGroup({ title, icon, signals }: { title: string; icon: React.Reac
 export default function SignalReview({ signals }: Props) {
   return (
     <div className="space-y-6">
-      <h3 className="font-medium text-gray-900">Extracted Signals</h3>
+      <h3 className="font-medium text-ax-text">Extracted Signals</h3>
 
       <SignalGroup
         title="Structural Signals"
-        icon={<Tag className="w-4 h-4 text-gray-500" />}
+        icon={<Tag className="w-4 h-4 text-ax-text-muted" />}
         signals={signals.structural || []}
       />
 
       <SignalGroup
         title="Business Questions"
-        icon={<HelpCircle className="w-4 h-4 text-indigo-500" />}
+        icon={<HelpCircle className="w-4 h-4 text-ax-primary-light" />}
         signals={signals.business_questions || []}
       />
 
@@ -72,7 +72,7 @@ export default function SignalReview({ signals }: Props) {
 
       <SignalGroup
         title="Contextual Signals"
-        icon={<Tag className="w-4 h-4 text-gray-400" />}
+        icon={<Tag className="w-4 h-4 text-ax-text-muted" />}
         signals={signals.contextual || []}
       />
     </div>

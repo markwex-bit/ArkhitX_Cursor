@@ -1,5 +1,6 @@
 from app.graph import graph_service
 from app.models.grounding_record import GroundingRecord
+from app.services.solution_scope import is_solution_grounding
 
 
 async def retrieve_graph_context(project_id: str, query: str, params: dict = None) -> dict:
@@ -37,9 +38,10 @@ def get_grounding_records(db, project_id: str = None, agent_name: str = None,
 
 
 def get_grounding_summary(db, project_id: str) -> dict:
-    records = db.query(GroundingRecord).filter(
-        GroundingRecord.project_id == project_id
-    ).all()
+    records = [
+        r for r in db.query(GroundingRecord).filter(GroundingRecord.project_id == project_id).all()
+        if is_solution_grounding(r.agent_name)
+    ]
 
     if not records:
         return {"total_calls": 0, "avg_score": 0, "agents": {}}

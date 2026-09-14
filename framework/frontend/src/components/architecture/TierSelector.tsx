@@ -55,8 +55,8 @@ export default function TierSelector({ projectId, lightweightCount, fullCount, o
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="font-medium text-gray-900">Choose an architecture package</h3>
-        <p className="text-sm text-gray-500 mt-1">
+        <h3 className="font-medium text-ax-text">Choose an architecture package</h3>
+        <p className="text-sm text-ax-text-muted mt-1">
           Not every engagement needs the full document set. Pick the tier that matches this
           project's scale and risk — you can upgrade to Full later without losing work.
         </p>
@@ -73,22 +73,22 @@ export default function TierSelector({ projectId, lightweightCount, fullCount, o
               key={tier}
               onClick={() => setSelected(tier)}
               className={`text-left p-5 rounded-xl border-2 transition-colors ${
-                isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                isSelected ? 'border-blue-500 bg-ax-primary/10' : 'border-ax-border hover:border-ax-border'
               }`}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Icon className="w-5 h-5 text-blue-600" />
-                  <span className="font-semibold text-gray-900">{copy.label}</span>
+                  <Icon className="w-5 h-5 text-ax-primary-light" />
+                  <span className="font-semibold text-ax-text">{copy.label}</span>
                 </div>
-                {isSelected && <CheckCircle2 className="w-5 h-5 text-blue-600" />}
+                {isSelected && <CheckCircle2 className="w-5 h-5 text-ax-primary-light" />}
               </div>
-              <p className="text-xs text-gray-500 mb-1">{count} documents</p>
-              <p className="text-sm text-gray-600 mb-3">{copy.blurb}</p>
+              <p className="text-xs text-ax-text-muted mb-1">{count} documents</p>
+              <p className="text-sm text-ax-text-dim mb-3">{copy.blurb}</p>
               <ul className="space-y-1">
                 {copy.includes.map((line, i) => (
-                  <li key={i} className="text-xs text-gray-500 flex gap-1.5">
-                    <span className="text-gray-300">&bull;</span>
+                  <li key={i} className="text-xs text-ax-text-muted flex gap-1.5">
+                    <span className="text-ax-text-muted">&bull;</span>
                     <span>{line}</span>
                   </li>
                 ))}
@@ -99,10 +99,10 @@ export default function TierSelector({ projectId, lightweightCount, fullCount, o
       </div>
 
       {selected && (
-        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Review format</label>
+        <div className="p-4 bg-ax-bg-3 rounded-lg border border-ax-border">
+          <label className="block text-sm font-medium text-ax-text-dim mb-2">Review format</label>
           <div className="flex gap-3">
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2 text-sm text-ax-text-dim">
               <input
                 type="radio"
                 checked={reviewMode === 'self'}
@@ -110,7 +110,7 @@ export default function TierSelector({ projectId, lightweightCount, fullCount, o
               />
               Self-approved (fast — solo/internal projects)
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2 text-sm text-ax-text-dim">
               <input
                 type="radio"
                 checked={reviewMode === 'stakeholder'}
@@ -123,7 +123,7 @@ export default function TierSelector({ projectId, lightweightCount, fullCount, o
             <button
               onClick={handleConfirm}
               disabled={saving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm transition-colors"
+              className="px-4 py-2 bg-ax-primary text-white rounded-lg hover:bg-ax-primary-hover disabled:opacity-50 text-sm transition-colors"
             >
               {saving ? 'Setting up...' : `Start ${TIER_COPY[selected].label} package`}
             </button>

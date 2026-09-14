@@ -14,11 +14,13 @@ Deliver a working POC or MVP **without** ArkhitX. The code is the source of trut
 - Use Cursor (or your usual stack) to implement the solution end-to-end: APIs, agents, UI, file handling—whatever the client needs.
 - Do **not** install `arkhitx-sdk`, connect to ArkhitX PostgreSQL, or require Neo4j for the POC to run.
 - Iterate until flows work on real sample data: parse, map, reconcile, or whatever the product does.
+- **UI:** Follow [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) — ArkhitX dark/light theme, `ax-*` tokens, header with theme toggle. Scaffold from `scripts/new_project.py` includes this by default.
 
 ## Exit criteria
 
 - Core user journeys run successfully in dev (or demo) environment.
 - Domain concepts exist in code: models, types, agent prompts in-repo, or equivalent—something Phase 1 can reverse-engineer into an ontology.
+- **Solution UI** uses the ArkhitX design system (not ad-hoc gray Tailwind shells).
 - **Architecture docs exist:** `docs/ARCHITECTURE.md` + `docs/architecture-overview.html` (HTML-rendered Mermaid, no PNG).
 
 ## Handoff line

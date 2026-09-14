@@ -93,6 +93,146 @@ class ArkhitXClient:
             conn.commit()
         return log_id
 
+    def log_pipeline_step(
+        self,
+        step_name: str,
+        status: str = "completed",
+        *,
+        phase: int | None = None,
+        stage: str | None = None,
+        process_group: str | None = None,
+        agent: str | None = None,
+        step_type: str | None = None,
+        input_summary: dict | None = None,
+        output_summary: dict | None = None,
+        duration_ms: int | None = None,
+        error_message: str | None = None,
+        project_id: str | None = None,
+    ) -> str:
+        """
+        Record a pipeline step for the Governance Pipeline Overview.
+
+        Use stage to group steps (e.g. "Intake", "Classification"). agent and
+        step_type appear as columns in the dashboard. output_summary may include
+        audit_id to link with audit_logs without duplicating rows.
+        """
+        rec_id = str(uuid.uuid4())
+        pid = project_id or self.project_id
+        if phase is None and pid:
+            with self._engine.connect() as conn:
+                row = conn.execute(
+                    text("SELECT current_phase FROM projects WHERE id = :id"),
+                    {"id": pid},
+                ).fetchone()
+            phase = int(row[0]) if row and row[0] is not None else 0
+        if phase is None:
+            phase = 0
+
+        inp = dict(input_summary or {})
+        out = dict(output_summary or {})
+        inp.setdefault("scope", "solution")
+        if stage:
+            inp.setdefault("stage", stage)
+        if process_group:
+            inp.setdefault("process_group", process_group)
+        if agent:
+            inp.setdefault("agent", agent)
+        if step_type:
+            inp.setdefault("step_type", step_type)
+
+        with self._engine.connect() as conn:
+            conn.execute(text("""
+                INSERT INTO pipeline_events
+                    (id, project_id, phase, step_name, status, input_summary, output_summary, duration_ms, error_message)
+                VALUES
+                    (:id, :project_id, :phase, :step_name, :status, :input_summary, :output_summary, :duration_ms, :error_message)
+            """), {
+                "id": rec_id,
+                "project_id": pid,
+                "phase": phase,
+                "step_name": step_name,
+                "status": status,
+                "input_summary": json.dumps(inp),
+                "output_summary": json.dumps(out),
+                "duration_ms": duration_ms,
+                "error_message": error_message,
+            })
+            conn.commit()
+        return rec_id
+
+    def log_gate_decision(
+        self,
+        gate_name: str,
+        decision: str,
+        *,
+        reviewer: str,
+        phase: int | None = None,
+        notes: str | None = None,
+        conditions: list | None = None,
+        items_reviewed: dict | None = None,
+        items_modified: dict | None = None,
+        project_id: str | None = None,
+    ) -> str:
+        """Record a solution HITL gate decision (not playbook phase gates)."""
+        rec_id = str(uuid.uuid4())
+        pid = project_id or self.project_id
+        if phase is None:
+            phase = 0
+
+        with self._engine.connect() as conn:
+            conn.execute(text("""
+                INSERT INTO gate_decisions
+                    (id, project_id, gate_name, phase, decision, reviewer, notes, conditions, items_reviewed, items_modified)
+                VALUES
+                    (:id, :project_id, :gate_name, :phase, :decision, :reviewer, :notes, :conditions, :items_reviewed, :items_modified)
+            """), {
+                "id": rec_id,
+                "project_id": pid,
+                "gate_name": gate_name,
+                "phase": phase,
+                "decision": decision,
+                "reviewer": reviewer,
+                "notes": notes,
+                "conditions": json.dumps(conditions or []),
+                "items_reviewed": json.dumps(items_reviewed or {}),
+                "items_modified": json.dumps(items_modified or {}),
+            })
+            conn.commit()
+        return rec_id
+
+    def log_llm_usage(
+        self,
+        *,
+        agent_name: str,
+        model: str,
+        input_tokens: int,
+        output_tokens: int,
+        duration_ms: int | None = None,
+        estimated_cost: float | None = None,
+        project_id: str | None = None,
+    ) -> str:
+        """Write token usage for a governed LLM call."""
+        rec_id = str(uuid.uuid4())
+        pid = project_id or self.project_id
+        with self._engine.connect() as conn:
+            conn.execute(text("""
+                INSERT INTO llm_usage_logs
+                    (id, project_id, agent_name, model, input_tokens, output_tokens, estimated_cost, duration_ms)
+                VALUES
+                    (:id, :project_id, :agent_name, :model, :input_tokens, :output_tokens, :estimated_cost, :duration_ms)
+            """), {
+                "id": rec_id,
+                "project_id": pid,
+                "agent_name": agent_name,
+                "model": model,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "estimated_cost": estimated_cost,
+                "duration_ms": duration_ms,
+            })
+            conn.commit()
+        return rec_id
+
     def store_grounding(
         self,
         agent_name: str,
@@ -196,6 +336,43 @@ class ArkhitXClient:
                     "temperature": temperature,
                 })
             conn.commit()
+
+    def get_retrieval_strategy(self) -> dict:
+        """Load per-project retrieval strategy map from PostgreSQL."""
+        pid = self.project_id
+        if not pid:
+            return {}
+        with self._engine.connect() as conn:
+            row = conn.execute(
+                text("SELECT retrieval_strategy FROM projects WHERE id = :id"),
+                {"id": pid},
+            ).fetchone()
+        if not row or not row[0]:
+            return {}
+        raw = row[0]
+        if isinstance(raw, dict):
+            return raw
+        if isinstance(raw, str):
+            return json.loads(raw)
+        return {}
+
+    def resolve_agent_retrieval_strategy(
+        self,
+        agent_name: str,
+        spec_strategy: str | None,
+    ) -> str | None:
+        """
+        Project config overrides agent spec: agents.{name} → default → spec.
+        Used by GovernedBaseAgent before get_grounding_context().
+        """
+        project_cfg = self.get_retrieval_strategy()
+        agents = project_cfg.get("agents") or {}
+        for key in (agent_name, agent_name.replace("-", "_")):
+            if key in agents:
+                return agents[key]
+        if project_cfg.get("default"):
+            return project_cfg["default"]
+        return spec_strategy
 
     # ── Neo4j helpers ───────────────────────────────────────────────────────
 

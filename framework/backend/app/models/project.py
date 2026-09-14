@@ -36,6 +36,8 @@ class Project(Base):
     # grounds drafts in this material instead of drafting prospectively from
     # bare intake fields. Null/empty for normal forward-looking projects.
     as_built_notes = Column(Text)
+    # Per-agent retrieval strategy: graph | structured | vector | hybrid
+    retrieval_strategy = Column(JSONB, default=dict)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -53,4 +55,10 @@ class Project(Base):
     )
     architecture_decisions = relationship(
         "ArchitectureDecision", back_populates="project", cascade="all, delete-orphan"
+    )
+    gate_decisions = relationship(
+        "GateDecisionRecord", back_populates="project", cascade="all, delete-orphan"
+    )
+    llm_usage_logs = relationship(
+        "LlmUsageLog", back_populates="project", cascade="all, delete-orphan"
     )

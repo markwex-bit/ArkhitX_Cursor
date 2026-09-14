@@ -56,20 +56,20 @@ export default function DocumentEditor({ projectId, document: doc, guidance, onC
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
-        <div className="flex items-start justify-between p-5 border-b border-gray-100">
+      <div className="bg-ax-bg-2 rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div className="flex items-start justify-between p-5 border-b border-ax-border/60">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">{doc.title}</h2>
-            <p className="text-sm text-gray-500 mt-1">{guidance}</p>
+            <h2 className="text-lg font-semibold text-ax-text">{doc.title}</h2>
+            <p className="text-sm text-ax-text-muted mt-1">{guidance}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-ax-text-muted hover:text-ax-text-dim">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="flex-1 overflow-auto p-5">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-gray-700">Content (Markdown)</label>
+            <label className="text-sm font-medium text-ax-text-dim">Content (Markdown)</label>
             <button
               onClick={handleDraft}
               disabled={drafting}
@@ -87,17 +87,17 @@ export default function DocumentEditor({ projectId, document: doc, guidance, onC
             }}
             rows={18}
             placeholder="Write or generate this document's content..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+            className="w-full px-3 py-2 border border-ax-border rounded-lg focus:outline-none focus:border-ax-primary text-sm font-mono"
           />
         </div>
 
-        <div className="flex items-center justify-between p-5 border-t border-gray-100">
+        <div className="flex items-center justify-between p-5 border-t border-ax-border/60">
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">Status</label>
+            <label className="text-sm text-ax-text-dim">Status</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as typeof status)}
-              className="text-sm border border-gray-300 rounded-lg px-2 py-1.5"
+              className="text-sm border border-ax-border rounded-lg px-2 py-1.5"
             >
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s}>{s.replace('_', ' ')}</option>
@@ -105,13 +105,13 @@ export default function DocumentEditor({ projectId, document: doc, guidance, onC
             </select>
           </div>
           <div className="flex gap-2">
-            <button onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm">
+            <button onClick={onClose} className="px-4 py-2 text-ax-text-dim hover:text-ax-text text-sm">
               Close
             </button>
             <button
               onClick={() => handleSave()}
               disabled={saving || (!dirty && status === doc.status)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm transition-colors"
+              className="px-4 py-2 bg-ax-primary text-white rounded-lg hover:bg-ax-primary-hover disabled:opacity-50 text-sm transition-colors"
             >
               {saving ? 'Saving...' : 'Save'}
             </button>

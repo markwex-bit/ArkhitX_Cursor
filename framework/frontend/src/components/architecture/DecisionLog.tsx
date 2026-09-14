@@ -11,8 +11,8 @@ interface Props {
 
 const STATUS_COLORS: Record<string, string> = {
   proposed: 'bg-amber-100 text-amber-700',
-  accepted: 'bg-green-100 text-green-700',
-  superseded: 'bg-gray-100 text-gray-500',
+  accepted: 'bg-emerald-500/15 text-emerald-400',
+  superseded: 'bg-ax-bg-3 text-ax-text-muted',
 }
 
 const EMPTY_FORM = {
@@ -55,15 +55,15 @@ export default function DecisionLog({ projectId, decisions, onChange }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-medium text-gray-900">Architecture Decision Records</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <h3 className="font-medium text-ax-text">Architecture Decision Records</h3>
+          <p className="text-xs text-ax-text-muted mt-0.5">
             One entry per consequential choice — LLM provider, agent framework, retrieval
             strategy, cloud target, etc. Context, alternatives, decision, consequences.
           </p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-ax-primary text-white rounded-lg hover:bg-ax-primary-hover transition-colors"
         >
           <Plus className="w-4 h-4" />
           New ADR
@@ -71,22 +71,22 @@ export default function DecisionLog({ projectId, decisions, onChange }: Props) {
       </div>
 
       {showForm && (
-        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+        <div className="p-4 bg-ax-bg-3 rounded-lg border border-ax-border space-y-3">
           <input
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             placeholder="Decision title, e.g. 'Choice of retrieval strategy for supplier lookup'"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-ax-border rounded-lg text-sm"
           />
           <textarea
             value={form.context}
             onChange={(e) => setForm({ ...form, context: e.target.value })}
             placeholder="Context — why does this decision need to be made?"
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-ax-border rounded-lg text-sm"
           />
           <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-600">Options considered</label>
+            <label className="text-xs font-medium text-ax-text-dim">Options considered</label>
             {form.options_considered.map((opt, i) => (
               <div key={i} className="grid grid-cols-3 gap-2">
                 <input
@@ -97,7 +97,7 @@ export default function DecisionLog({ projectId, decisions, onChange }: Props) {
                     setForm({ ...form, options_considered: next })
                   }}
                   placeholder="Option"
-                  className="px-2 py-1.5 border border-gray-300 rounded text-xs"
+                  className="px-2 py-1.5 border border-ax-border rounded text-xs"
                 />
                 <input
                   value={opt.pros}
@@ -107,7 +107,7 @@ export default function DecisionLog({ projectId, decisions, onChange }: Props) {
                     setForm({ ...form, options_considered: next })
                   }}
                   placeholder="Pros"
-                  className="px-2 py-1.5 border border-gray-300 rounded text-xs"
+                  className="px-2 py-1.5 border border-ax-border rounded text-xs"
                 />
                 <input
                   value={opt.cons}
@@ -117,7 +117,7 @@ export default function DecisionLog({ projectId, decisions, onChange }: Props) {
                     setForm({ ...form, options_considered: next })
                   }}
                   placeholder="Cons"
-                  className="px-2 py-1.5 border border-gray-300 rounded text-xs"
+                  className="px-2 py-1.5 border border-ax-border rounded text-xs"
                 />
               </div>
             ))}
@@ -128,7 +128,7 @@ export default function DecisionLog({ projectId, decisions, onChange }: Props) {
                   options_considered: [...form.options_considered, { option: '', pros: '', cons: '' }],
                 })
               }
-              className="text-xs text-blue-600 hover:text-blue-800"
+              className="text-xs text-ax-primary-light hover:text-blue-800"
             >
               + add option
             </button>
@@ -138,23 +138,23 @@ export default function DecisionLog({ projectId, decisions, onChange }: Props) {
             onChange={(e) => setForm({ ...form, decision: e.target.value })}
             placeholder="Decision — what was chosen"
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-ax-border rounded-lg text-sm"
           />
           <textarea
             value={form.consequences}
             onChange={(e) => setForm({ ...form, consequences: e.target.value })}
             placeholder="Consequences — tradeoffs accepted"
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-ax-border rounded-lg text-sm"
           />
           <div className="flex justify-end gap-2">
-            <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-sm text-gray-600">
+            <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-sm text-ax-text-dim">
               Cancel
             </button>
             <button
               onClick={handleCreate}
               disabled={saving || !form.title.trim()}
-              className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+              className="px-3 py-1.5 bg-ax-primary text-white rounded-lg text-sm hover:bg-ax-primary-hover disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Log decision'}
             </button>
@@ -164,18 +164,18 @@ export default function DecisionLog({ projectId, decisions, onChange }: Props) {
 
       <div className="space-y-2">
         {decisions.map((d) => (
-          <div key={d.id} className="border border-gray-200 rounded-lg">
+          <div key={d.id} className="border border-ax-border rounded-lg">
             <button
               onClick={() => setExpanded(expanded === d.id ? null : d.id)}
               className="w-full flex items-center justify-between p-3 text-left"
             >
               <div className="flex items-center gap-2">
                 {expanded === d.id ? (
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                  <ChevronDown className="w-4 h-4 text-ax-text-muted" />
                 ) : (
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                  <ChevronRight className="w-4 h-4 text-ax-text-muted" />
                 )}
-                <span className="text-sm font-medium text-gray-900">{d.title}</span>
+                <span className="text-sm font-medium text-ax-text">{d.title}</span>
               </div>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[d.status]}`}>
                 {d.status}
@@ -183,28 +183,28 @@ export default function DecisionLog({ projectId, decisions, onChange }: Props) {
             </button>
             {expanded === d.id && (
               <div className="px-3 pb-3 space-y-2 text-sm">
-                {d.context && <p><span className="font-medium text-gray-700">Context: </span>{d.context}</p>}
+                {d.context && <p><span className="font-medium text-ax-text-dim">Context: </span>{d.context}</p>}
                 {d.options_considered.length > 0 && (
                   <div>
-                    <span className="font-medium text-gray-700">Options considered:</span>
+                    <span className="font-medium text-ax-text-dim">Options considered:</span>
                     <ul className="list-disc pl-5 mt-1 space-y-0.5">
                       {d.options_considered.map((o, i) => (
                         <li key={i}>
                           <span className="font-medium">{o.option}</span>
-                          {o.pros && <span className="text-green-600"> +{o.pros}</span>}
+                          {o.pros && <span className="text-emerald-400"> +{o.pros}</span>}
                           {o.cons && <span className="text-red-600"> -{o.cons}</span>}
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
-                {d.decision && <p><span className="font-medium text-gray-700">Decision: </span>{d.decision}</p>}
+                {d.decision && <p><span className="font-medium text-ax-text-dim">Decision: </span>{d.decision}</p>}
                 {d.consequences && (
-                  <p><span className="font-medium text-gray-700">Consequences: </span>{d.consequences}</p>
+                  <p><span className="font-medium text-ax-text-dim">Consequences: </span>{d.consequences}</p>
                 )}
                 <button
                   onClick={() => handleDelete(d.id)}
-                  className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 mt-2"
+                  className="flex items-center gap-1 text-xs text-red-400 hover:text-red-400 mt-2"
                 >
                   <Trash2 className="w-3 h-3" /> Delete
                 </button>
@@ -213,7 +213,7 @@ export default function DecisionLog({ projectId, decisions, onChange }: Props) {
           </div>
         ))}
         {decisions.length === 0 && !showForm && (
-          <p className="text-sm text-gray-400 text-center py-4">No ADRs logged yet.</p>
+          <p className="text-sm text-ax-text-muted text-center py-4">No ADRs logged yet.</p>
         )}
       </div>
     </div>

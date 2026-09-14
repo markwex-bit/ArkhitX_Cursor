@@ -74,12 +74,29 @@ export const governanceApi = {
     api.get('/governance/grounding', { params }),
   groundingSummary: (projectId: string) =>
     api.get(`/governance/grounding/summary/${projectId}`),
-  pipelineEvents: (params?: { project_id?: string }) =>
+  pipelineEvents: (params?: { project_id?: string; limit?: number }) =>
     api.get('/governance/pipeline-events', { params }),
+  pipelineOverview: (projectId: string, limit = 500) =>
+    api.get(`/governance/pipeline-overview/${projectId}`, { params: { limit } }),
+  gateHistory: (projectId: string) =>
+    api.get('/governance/gates', { params: { project_id: projectId } }),
+  llmUsage: (projectId: string) =>
+    api.get('/governance/llm-usage', { params: { project_id: projectId } }),
+  lineage: (projectId: string) => api.get(`/governance/lineage/${projectId}`),
   listPrompts: () => api.get('/governance/prompts'),
   getPrompt: (id: string) => api.get(`/governance/prompts/${id}`),
   updatePrompt: (id: string, data: Record<string, unknown>) =>
     api.put(`/governance/prompts/${id}`, data),
+}
+
+export const adminDataApi = {
+  listTables: () => api.get('/admin/data/tables'),
+  getRows: (tableName: string, params?: { project_id?: string; limit?: number; offset?: number }) =>
+    api.get(`/admin/data/tables/${tableName}/rows`, { params }),
+  createRow: (tableName: string, data: Record<string, unknown>) =>
+    api.post(`/admin/data/tables/${tableName}/rows`, { data }),
+  updateRow: (tableName: string, rowId: string, data: Record<string, unknown>) =>
+    api.put(`/admin/data/tables/${tableName}/rows/${rowId}`, { data }),
 }
 
 export const applicationsApi = {

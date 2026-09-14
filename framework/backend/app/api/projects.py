@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.project import Project
 from app.models.pipeline_event import PipelineEvent
+from app.models.gate_decision import GateDecisionRecord
 from app.services.audit_service import log_audit
 
 router = APIRouter()
@@ -23,6 +24,7 @@ class ProjectUpdate(BaseModel):
     ontology_schema: dict | None = None
     field_mappings: dict | None = None
     validation_results: dict | None = None
+    retrieval_strategy: dict | None = None
 
 
 class GateDecision(BaseModel):
@@ -99,21 +101,50 @@ def decide_gate(project_id: str, gate_name: str, decision: GateDecision, db: Ses
 
     approved_with_conditions = bool(decision.approved and decision.conditions)
     action = f"gate_{'approved' if decision.approved else 'rejected'}:{gate_name}"
-    log_audit(db, project_id=project_id, actor=decision.reviewer,
+    audit_entry = log_audit(db, project_id=project_id, actor=decision.reviewer,
               action=action, context={
+                  "scope": "framework",
                   "notes": decision.notes,
                   "modifications": decision.modifications,
                   "conditions": decision.conditions,
                   "approved_with_conditions": approved_with_conditions,
+                  "stage": "Governance Gates",
+                  "step_name": f"Gate: {gate_name}",
+                  "step_type": "Gate + HITL",
               })
 
     event = PipelineEvent(
         project_id=project.id,
         phase=project.current_phase,
-        step_name=f"gate_{'passed' if decision.approved else 'rejected'}:{gate_name}",
+        step_name=f"Gate: {gate_name}",
         status="completed" if decision.approved else "rejected",
+        input_summary={
+            "scope": "framework",
+            "stage": "Governance Gates",
+            "agent": decision.reviewer or "consultant",
+            "step_type": "Gate + HITL",
+        },
+        output_summary={
+            "audit_id": str(audit_entry.id),
+            "summary": decision.notes or f"Gate {'approved' if decision.approved else 'rejected'}",
+            "confidence": 1.0 if decision.approved else 0.0,
+        },
     )
     db.add(event)
+
+    decision_label = "approved_with_conditions" if approved_with_conditions else (
+        "approved" if decision.approved else "rejected"
+    )
+    db.add(GateDecisionRecord(
+        project_id=project.id,
+        gate_name=gate_name,
+        phase=project.current_phase,
+        decision=decision_label,
+        reviewer=decision.reviewer,
+        notes=decision.notes,
+        conditions=decision.conditions or [],
+        items_reviewed=decision.modifications or {},
+    ))
 
     if decision.approved and project.current_phase < 5:
         old_phase = project.current_phase
@@ -160,6 +191,7 @@ def _serialize(project: Project) -> dict:
         "signals": project.signals or {},
         "ontology_schema": project.ontology_schema or {},
         "field_mappings": project.field_mappings or {},
+        "retrieval_strategy": project.retrieval_strategy or {},
         "created_at": project.created_at.isoformat() if project.created_at else None,
         "updated_at": project.updated_at.isoformat() if project.updated_at else None,
     }

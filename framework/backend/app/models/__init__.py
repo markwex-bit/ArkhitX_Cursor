@@ -6,6 +6,8 @@ from app.models.grounding_record import GroundingRecord
 from app.models.pipeline_event import PipelineEvent
 from app.models.architecture_document import ArchitectureDocument
 from app.models.architecture_decision import ArchitectureDecision
+from app.models.gate_decision import GateDecisionRecord
+from app.models.llm_usage_log import LlmUsageLog
 
 __all__ = [
     "Client",
@@ -16,4 +18,6 @@ __all__ = [
     "PipelineEvent",
     "ArchitectureDocument",
     "ArchitectureDecision",
+    "GateDecisionRecord",
+    "LlmUsageLog",
 ]

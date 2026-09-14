@@ -7,6 +7,7 @@ import PainPointForm from '../components/PainPointForm'
 import SignalReview from '../components/SignalReview'
 import HITLGateOverlay from '../components/HITLGateOverlay'
 import ArchitectureWorkspace from '../components/architecture/ArchitectureWorkspace'
+import { RetrievalStrategyPanel } from '../components/project/RetrievalStrategyPanel'
 import { CheckCircle, Circle, ArrowRight } from 'lucide-react'
 
 export default function ProjectWorkspace() {
@@ -28,61 +29,62 @@ export default function ProjectWorkspace() {
   }, [id, setCurrentProject])
 
   if (loading || !currentProject) {
-    return <div className="p-8 text-gray-500">Loading project...</div>
+    return <div className="ax-page-body text-ax-text-muted text-xs">Loading project…</div>
   }
 
   const phase = currentProject.current_phase
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">{currentProject.name}</h1>
-        <p className="text-gray-500">{currentProject.client_name}</p>
-      </div>
-
-      {/* Phase Progress Bar */}
-      <div className="mb-8 p-4 bg-white rounded-xl border border-gray-200">
-        <div className="flex items-center justify-between">
+    <div className="ax-page">
+      <div className="ax-page-header">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-sm font-bold truncate">{currentProject.name}</h1>
+            <p className="text-[10px] text-ax-text-muted truncate">{currentProject.client_name}</p>
+          </div>
+          {GATE_NAMES[phase] && (
+            <button type="button" onClick={() => setShowGate(true)} className="ax-btn-success shrink-0">
+              Review & Approve Gate
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-1 flex-wrap">
           {PHASE_ORDER.map((num, idx) => {
             const phaseName = PHASE_NAMES[num]
             const isComplete = num < phase
             const isCurrent = num === phase
             return (
               <div key={num} className="flex items-center">
-                <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
-                  isComplete ? 'bg-green-100 text-green-700' :
-                  isCurrent ? 'bg-blue-100 text-blue-700' :
-                  'bg-gray-100 text-gray-400'
+                <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+                  isComplete ? 'ax-phase-done' :
+                  isCurrent ? 'ax-phase-current' :
+                  'ax-phase-pending'
                 }`}>
-                  {isComplete ? <CheckCircle className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
+                  {isComplete ? <CheckCircle className="w-2.5 h-2.5" /> : <Circle className="w-2.5 h-2.5" />}
                   {phaseName}
                 </div>
-                {idx < PHASE_ORDER.length - 1 && <ArrowRight className="w-4 h-4 text-gray-300 mx-1" />}
+                {idx < PHASE_ORDER.length - 1 && <ArrowRight className="w-3 h-3 text-ax-text-muted mx-0.5" />}
               </div>
             )
           })}
         </div>
       </div>
 
-      {/* Phase Content */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="ax-page-body max-w-5xl">
+      <RetrievalStrategyPanel
+        project={currentProject}
+        onUpdated={(p) => setCurrentProject(p)}
+      />
+      <div className="ax-panel-pad mb-4 mt-4">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-xs font-semibold">
               Phase {phase}: {PHASE_NAMES[phase]}
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-[10px] text-ax-text-muted mt-0.5">
               Status: {currentProject.phase_status}
             </p>
           </div>
-          {GATE_NAMES[phase] && (
-            <button
-              onClick={() => setShowGate(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-            >
-              Review & Approve Gate
-            </button>
-          )}
         </div>
 
         {/* Phase A (-1): Architecture & Design — pre-build gate */}
@@ -96,8 +98,8 @@ export default function ProjectWorkspace() {
                 setArchNotStarted(outstandingCount)
               }}
             />
-            <p className="text-sm text-gray-400 text-center">
-              Tell Cursor: "Follow <code className="bg-gray-100 px-1 rounded">docs/{PHASE_DOC_FILES[-1]}</code>"
+            <p className="text-sm text-ax-text-muted text-center">
+              Tell Cursor: "Follow <code className="bg-ax-bg-3 px-1 rounded">docs/{PHASE_DOC_FILES[-1]}</code>"
             </p>
           </div>
         )}
@@ -105,8 +107,8 @@ export default function ProjectWorkspace() {
         {/* Phase 0: Pain Point Intake */}
         {phase === 0 && (
           <div className="space-y-6">
-            <p className="text-sm text-gray-400 text-center">
-              Tell Cursor: "Follow <code className="bg-gray-100 px-1 rounded">docs/{PHASE_DOC_FILES[0]}</code>"
+            <p className="text-sm text-ax-text-muted text-center">
+              Tell Cursor: "Follow <code className="bg-ax-bg-3 px-1 rounded">docs/{PHASE_DOC_FILES[0]}</code>"
             </p>
             <PainPointForm
               projectId={currentProject.id}
@@ -123,13 +125,14 @@ export default function ProjectWorkspace() {
 
         {/* Phase 1-5: Placeholder content for Cursor to fill */}
         {phase >= 1 && phase <= 5 && (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-ax-text-muted">
             <p className="text-lg">Phase {phase}: {PHASE_NAMES[phase]}</p>
             <p className="text-sm mt-2">
-              Tell Cursor: "Follow <code className="bg-gray-100 px-1 rounded">docs/{PHASE_DOC_FILES[phase]}</code>"
+              Tell Cursor: "Follow <code className="bg-ax-bg-3 px-1 rounded">docs/{PHASE_DOC_FILES[phase]}</code>"
             </p>
           </div>
         )}
+      </div>
       </div>
 
       {/* HITL Gate Overlay */}

@@ -54,7 +54,7 @@ export default function ArchitectureWorkspace({ projectId, tier, onReadinessChan
   }, [loadAll])
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-400 text-sm">Loading architecture workspace...</div>
+    return <div className="text-center py-8 text-ax-text-muted text-sm">Loading architecture workspace...</div>
   }
 
   if (!hasTier) {
@@ -73,20 +73,20 @@ export default function ArchitectureWorkspace({ projectId, tier, onReadinessChan
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-lg">
+      <div className="flex items-center justify-between p-3 bg-ax-primary/10 border border-blue-100 rounded-lg">
         <p className="text-sm text-blue-800">
           <span className="font-semibold">{approvedCount}/{documents.length}</span> documents approved
           {' · '}
           <span className="font-semibold">{decisions.length}</span> ADR{decisions.length === 1 ? '' : 's'} logged
         </p>
-        <span className="text-xs text-blue-600 uppercase font-medium">{tier} package</span>
+        <span className="text-xs text-ax-primary-light uppercase font-medium">{tier} package</span>
       </div>
 
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-ax-border">
         <button
           onClick={() => setTab('documents')}
           className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            tab === 'documents' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+            tab === 'documents' ? 'border-blue-600 text-ax-primary-light' : 'border-transparent text-ax-text-muted hover:text-ax-text-dim'
           }`}
         >
           <FileText className="w-4 h-4" /> Documents
@@ -94,7 +94,7 @@ export default function ArchitectureWorkspace({ projectId, tier, onReadinessChan
         <button
           onClick={() => setTab('decisions')}
           className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            tab === 'decisions' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+            tab === 'decisions' ? 'border-blue-600 text-ax-primary-light' : 'border-transparent text-ax-text-muted hover:text-ax-text-dim'
           }`}
         >
           <GitBranch className="w-4 h-4" /> Decisions (ADRs)

@@ -12,6 +12,10 @@ export interface Project {
   signals: SignalSet
   ontology_schema: OntologySchema
   field_mappings: Record<string, unknown>
+  retrieval_strategy?: {
+    default?: string
+    agents?: Record<string, string>
+  }
   created_at: string | null
   updated_at: string | null
 }
@@ -82,6 +86,19 @@ export interface AuditLogEntry {
   created_at: string | null
 }
 
+export interface GateDecisionRecord {
+  id: string
+  project_id: string
+  gate_name: string
+  phase: number | null
+  decision: string
+  reviewer: string | null
+  notes: string | null
+  conditions: string[]
+  items_reviewed: Record<string, unknown>
+  created_at: string | null
+}
+
 export interface GroundingRecord {
   id: string
   project_id: string | null
@@ -91,6 +108,66 @@ export interface GroundingRecord {
   query_path: string | null
   cited_nodes: unknown[]
   created_at: string | null
+}
+
+export interface PipelineHistoryRun {
+  id: string
+  status: string
+  tokens_total: number | null
+  output_summary: string
+  confidence: number | null
+  duration_ms: number | null
+  created_at: string | null
+}
+
+export interface PipelineTimelineRow {
+  id: string
+  source: 'pipeline' | 'audit'
+  stage: string
+  process_group?: string
+  agent: string
+  agent_name: string
+  step_index: number
+  step_name: string
+  step_type: string
+  status: string
+  tokens_in: number | null
+  tokens_out: number | null
+  tokens_total: number | null
+  output_summary: string
+  grounding_score: number | null
+  confidence: number | null
+  duration_ms: number | null
+  error_message: string | null
+  phase: number | null
+  created_at: string | null
+  history?: PipelineHistoryRun[]
+  run_count?: number
+}
+
+export interface PipelineStageGroup {
+  stage: string
+  rows: PipelineTimelineRow[]
+  done: number
+  total: number
+  running: number
+  failed: number
+  tokens: number
+}
+
+export interface PipelineOverview {
+  summary: {
+    total_steps: number
+    completed: number
+    running: number
+    failed: number
+    pending: number
+    total_tokens: number
+    stage_count: number
+    gates_passed?: number
+  }
+  stages: PipelineStageGroup[]
+  rows: PipelineTimelineRow[]
 }
 
 export interface AgentPrompt {
