@@ -64,6 +64,7 @@ Ports are auto-assigned from projects.json.
 import argparse
 import json
 import os
+import shutil
 import sys
 import textwrap
 from datetime import date
@@ -72,6 +73,7 @@ from pathlib import Path
 # ── Locate workspace root (one level up from this script) ─────────────────────
 WORKSPACE = Path(__file__).parent.parent
 REGISTRY  = WORKSPACE / "projects.json"
+DESIGN_SYSTEM = WORKSPACE / "framework" / "design-system"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -355,10 +357,13 @@ FRONTEND_PACKAGE_JSON = """\
     "lint": "eslint . --ext ts,tsx"
   },
   "dependencies": {
+    "axios": "^1.7.7",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.400.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
-    "axios": "^1.7.7"
+    "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
     "@types/react": "^18.3.9",
@@ -367,6 +372,7 @@ FRONTEND_PACKAGE_JSON = """\
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.5.3",
     "vite": "^5.4.8"
   }
@@ -413,7 +419,10 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
+import { initTheme } from './lib/theme'
 import './index.css'
+
+initTheme()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -443,12 +452,17 @@ export default function App() {
 
 FRONTEND_LAYOUT_TSX = """\
 import { ReactNode } from 'react'
+import { ThemeToggle } from './ui/ThemeToggle'
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-900">{{NAME}}</h1>
+    <div className="min-h-screen bg-ax-bg text-ax-text">
+      <header className="border-b border-ax-border bg-ax-bg-2 px-6 py-4 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-ax-text">{{NAME}}</h1>
+          <p className="text-xs text-ax-text-muted mt-0.5">ArkhitX solution workspace</p>
+        </div>
+        <ThemeToggle />
       </header>
       <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>
     </div>
@@ -459,10 +473,12 @@ export default function Layout({ children }: { children: ReactNode }) {
 FRONTEND_HOME_TSX = """\
 export default function HomePage() {
   return (
-    <div className="text-center py-20">
-      <h2 className="text-3xl font-bold text-gray-800 mb-4">{{NAME}}</h2>
-      <p className="text-gray-500">
-        Your application is running. Replace this page with your domain UI.
+    <div className="ax-panel-pad text-center py-12">
+      <h2 className="text-2xl font-bold text-ax-text mb-3">{{NAME}}</h2>
+      <p className="text-ax-text-muted max-w-lg mx-auto">
+        Your application is running. Replace this page with your domain UI using the
+        ArkhitX design system (<code className="ax-code">ax-panel</code>,{' '}
+        <code className="ax-code">ax-btn-primary</code>, etc.). See framework/docs/DESIGN-SYSTEM.md.
       </p>
     </div>
   )
@@ -488,21 +504,6 @@ FRONTEND_TYPES_TS = """\
 export interface HealthResponse {
   status: string
   project: string
-}
-"""
-
-FRONTEND_INDEX_CSS = """\
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-"""
-
-FRONTEND_TAILWIND_CONFIG = """\
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: ['./index.html', './src/**/*.{ts,tsx}'],
-  theme: { extend: {} },
-  plugins: [],
 }
 """
 
@@ -624,6 +625,8 @@ services:
 
   frontend:
     build: ./frontend
+    # npm install on start keeps /app/node_modules volume in sync when package.json changes
+    command: sh -c "npm install && npm run dev"
     ports:
       - "{{FRONTEND_PORT}}:{{FRONTEND_PORT}}"
     environment:
@@ -1131,6 +1134,24 @@ def touch(path: Path) -> None:
     print(f"  ✓ {path.relative_to(WORKSPACE)}")
 
 
+def copy_design_system(frontend_root: Path) -> None:
+    """Copy canonical ArkhitX UI tokens + theme toggle into a project frontend."""
+    if not DESIGN_SYSTEM.is_dir():
+        print(f"  ⚠ design-system missing at {DESIGN_SYSTEM} — skipping UI scaffold")
+        return
+    copies = [
+        (DESIGN_SYSTEM / "index.css", frontend_root / "src" / "index.css"),
+        (DESIGN_SYSTEM / "tailwind.config.js", frontend_root / "tailwind.config.js"),
+        (DESIGN_SYSTEM / "theme.ts", frontend_root / "src" / "lib" / "theme.ts"),
+        (DESIGN_SYSTEM / "utils.ts", frontend_root / "src" / "lib" / "utils.ts"),
+        (DESIGN_SYSTEM / "ThemeToggle.tsx", frontend_root / "src" / "components" / "ui" / "ThemeToggle.tsx"),
+    ]
+    for src, dest in copies:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dest)
+        print(f"  ✓ {dest.relative_to(WORKSPACE)}")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Scaffold
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1164,7 +1185,7 @@ def scaffold(slug: str, name: str, fp: int, bp: int, dp: int) -> None:
     # frontend
     write(root / "frontend/src/main.tsx",                   FRONTEND_MAIN_TSX, **kw)
     write(root / "frontend/src/App.tsx",                    FRONTEND_APP_TSX, **kw)
-    write(root / "frontend/src/index.css",                  FRONTEND_INDEX_CSS, **kw)
+    copy_design_system(root / "frontend")
     write(root / "frontend/src/components/Layout.tsx",      FRONTEND_LAYOUT_TSX, **kw)
     write(root / "frontend/src/pages/HomePage.tsx",         FRONTEND_HOME_TSX, **kw)
     write(root / "frontend/src/services/api.ts",            FRONTEND_API_TS, **kw)
@@ -1174,7 +1195,6 @@ def scaffold(slug: str, name: str, fp: int, bp: int, dp: int) -> None:
     write(root / "frontend/vite.config.ts",                 FRONTEND_VITE_CONFIG, **kw)
     write(root / "frontend/tsconfig.json",                  FRONTEND_TSCONFIG, **kw)
     write(root / "frontend/tsconfig.node.json",             FRONTEND_TSCONFIG_NODE, **kw)
-    write(root / "frontend/tailwind.config.js",             FRONTEND_TAILWIND_CONFIG, **kw)
     write(root / "frontend/postcss.config.js",              FRONTEND_POSTCSS, **kw)
     write(root / "frontend/Dockerfile",                     FRONTEND_DOCKERFILE, **kw)
 

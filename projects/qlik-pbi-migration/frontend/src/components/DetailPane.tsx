@@ -1,7 +1,16 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { MatchCandidate, QlikDispositionResult, SignOffDecision } from '../types'
 import { postSignOff } from '../services/api'
 import Badge from './Badge'
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <div className="ax-label mb-0.5">{label}</div>
+      <div className="text-[11px] text-ax-text">{children}</div>
+    </div>
+  )
+}
 
 export default function DetailPane({
   qlikApp,
@@ -21,7 +30,7 @@ export default function DetailPane({
 
   const handleSubmit = async () => {
     if (!reviewer.trim()) {
-      setError('Reviewer name/email is required — this is a human sign-off gate.')
+      setError('Reviewer name/email is required.')
       return
     }
     setSubmitting(true)
@@ -37,7 +46,7 @@ export default function DetailPane({
       setSubmitted(true)
       onSignedOff()
     } catch (e) {
-      setError('Failed to submit sign-off. See console for details.')
+      setError('Failed to submit sign-off.')
       console.error(e)
     } finally {
       setSubmitting(false)
@@ -45,137 +54,98 @@ export default function DetailPane({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 sticky top-6 space-y-5">
-      <div>
-        <div className="text-xs text-gray-500 mb-1">Qlik app</div>
-        <div className="font-semibold text-gray-900">{qlikApp.qlik_app_name}</div>
-        <div className="text-xs text-gray-500 mt-2 mb-1">Power BI candidate</div>
-        <div className="font-semibold text-gray-900">{candidate.pbi_name}</div>
-        <div className="text-xs text-gray-500">{candidate.pbi_workspace_name}</div>
-      </div>
+    <div className="ax-panel overflow-hidden sticky top-2">
+      <div className="ax-panel-header">Candidate detail</div>
+      <div className="ax-panel-body space-y-3 text-[11px]">
+        <Field label="Qlik app">{qlikApp.qlik_app_name}</Field>
+        <Field label="Power BI candidate">
+          {candidate.pbi_name}
+          <span className="block text-ax-text-muted">{candidate.pbi_workspace_name}</span>
+        </Field>
 
-      <div className="flex items-center gap-2">
-        <Badge tone={candidate.confidence_tier}>{candidate.confidence_tier} confidence</Badge>
-        {candidate.disposition && <Badge tone={candidate.disposition}>{candidate.disposition}</Badge>}
-        {candidate.effort && <span className="text-xs text-gray-500">Effort: {candidate.effort}</span>}
-      </div>
+        <div className="flex flex-wrap items-center gap-1">
+          <Badge tone={candidate.confidence_tier}>{candidate.confidence_tier}</Badge>
+          {candidate.disposition && <Badge tone={candidate.disposition}>{candidate.disposition}</Badge>}
+          {candidate.effort && <span className="text-ax-text-muted">Effort: {candidate.effort}</span>}
+        </div>
 
-      <div>
-        <div className="text-xs font-semibold text-gray-600 mb-1">Lineage signal</div>
-        <div className="text-sm text-gray-700">{candidate.lineage_signal}</div>
-      </div>
+        <Field label="Lineage">{candidate.lineage_signal}</Field>
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Name sim.">{candidate.name_similarity.toFixed(2)}</Field>
+          <Field label="Measure overlap">{candidate.measure_overlap.toFixed(2)}</Field>
+        </div>
+
         <div>
-          <div className="text-xs font-semibold text-gray-600 mb-1">Name similarity</div>
-          <div className="text-gray-700">{candidate.name_similarity.toFixed(2)}</div>
-        </div>
-        <div>
-          <div className="text-xs font-semibold text-gray-600 mb-1">Measure overlap</div>
-          <div className="text-gray-700">{candidate.measure_overlap.toFixed(2)}</div>
-        </div>
-      </div>
-
-      <div>
-        <div className="text-xs font-semibold text-gray-600 mb-1">
-          Signals available vs. missing
-        </div>
-        <div className="flex flex-wrap gap-1 mb-1">
-          {candidate.signals_available.map((s) => (
-            <span key={s} className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded">
-              ✓ {s.replace(/_/g, ' ')}
-            </span>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {candidate.signals_missing.map((s) => (
-            <span key={s} className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">
-              ✗ {s.replace(/_/g, ' ')}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {candidate.semantic_rationale && (
-        <div>
-          <div className="text-xs font-semibold text-gray-600 mb-1">
-            AI semantic match {candidate.llm_used ? '' : '(fallback — LLM unavailable)'}
+          <div className="ax-label mb-1">Signals</div>
+          <div className="flex flex-wrap gap-0.5 mb-1">
+            {candidate.signals_available.map((s) => (
+              <span key={s} className="ax-badge-ok">
+                ✓ {s.replace(/_/g, ' ')}
+              </span>
+            ))}
           </div>
-          <p className="text-sm text-gray-700">{candidate.semantic_rationale}</p>
-          {candidate.matched_concepts.length > 0 && (
-            <div className="mt-2">
-              <div className="text-xs text-gray-500 mb-1">Matched concepts</div>
-              <ul className="text-xs text-gray-700 list-disc list-inside space-y-0.5">
-                {candidate.matched_concepts.map((c) => (
-                  <li key={c}>{c}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {candidate.unmatched_concepts.length > 0 && (
-            <div className="mt-2">
-              <div className="text-xs text-gray-500 mb-1">Unmatched / gap concepts</div>
-              <ul className="text-xs text-gray-700 list-disc list-inside space-y-0.5">
-                {candidate.unmatched_concepts.map((c) => (
-                  <li key={c}>{c}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <div className="flex flex-wrap gap-0.5">
+            {candidate.signals_missing.map((s) => (
+              <span key={s} className="ax-badge-muted">
+                ✗ {s.replace(/_/g, ' ')}
+              </span>
+            ))}
+          </div>
         </div>
-      )}
 
-      {candidate.advisor_rationale && (
-        <div>
-          <div className="text-xs font-semibold text-gray-600 mb-1">
-            AI migration advisor rationale
-          </div>
-          <p className="text-sm text-gray-700">{candidate.advisor_rationale}</p>
-        </div>
-      )}
-
-      <div className="border-t border-gray-100 pt-4">
-        <div className="text-xs font-semibold text-gray-600 mb-2">
-          Human sign-off (required — nothing above is a final decision)
-        </div>
-        {submitted ? (
-          <div className="text-sm text-emerald-700 bg-emerald-50 rounded p-3">
-            Sign-off recorded. Check the Backlog tab.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <select
-              value={decision}
-              onChange={(e) => setDecision(e.target.value as SignOffDecision)}
-              className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-            >
-              <option value="confirmed">Confirm — proceed with this disposition</option>
-              <option value="overridden">Override — I disagree, use my notes</option>
-              <option value="needs_more_info">Needs more info — not actionable yet</option>
-            </select>
-            <input
-              value={reviewer}
-              onChange={(e) => setReviewer(e.target.value)}
-              placeholder="Reviewer name or email"
-              className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-            />
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Notes (optional)"
-              rows={2}
-              className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-            />
-            {error && <div className="text-xs text-rose-600">{error}</div>}
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-sm font-medium rounded px-3 py-1.5"
-            >
-              {submitting ? 'Submitting…' : 'Submit sign-off'}
-            </button>
-          </div>
+        {candidate.semantic_rationale && (
+          <Field label={`Semantic match${candidate.llm_used ? '' : ' (fallback)'}`}>
+            <p className="text-ax-text-dim leading-relaxed">{candidate.semantic_rationale}</p>
+          </Field>
         )}
+
+        {candidate.advisor_rationale && (
+          <Field label="Advisor rationale">
+            <p className="text-ax-text-dim leading-relaxed">{candidate.advisor_rationale}</p>
+          </Field>
+        )}
+
+        <div className="border-t border-ax-border pt-3">
+          <div className="ax-label mb-2">Human sign-off</div>
+          {submitted ? (
+            <div className="ax-badge-ok p-2 rounded">Sign-off recorded — see Backlog tab.</div>
+          ) : (
+            <div className="space-y-1.5">
+              <select
+                value={decision}
+                onChange={(e) => setDecision(e.target.value as SignOffDecision)}
+                className="ax-select"
+              >
+                <option value="confirmed">Confirm disposition</option>
+                <option value="overridden">Override</option>
+                <option value="needs_more_info">Needs more info</option>
+              </select>
+              <input
+                value={reviewer}
+                onChange={(e) => setReviewer(e.target.value)}
+                placeholder="Reviewer"
+                className="ax-input"
+              />
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Notes (optional)"
+                rows={2}
+                className="ax-textarea min-h-[48px]"
+              />
+              {error && <div className="text-[10px] ax-stat-value-danger">{error}</div>}
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="ax-btn-primary w-full disabled:opacity-50"
+              >
+                {submitting ? 'Submitting…' : 'Submit sign-off'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

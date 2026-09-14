@@ -222,6 +222,18 @@ Ports are auto-assigned by `scripts/new_project.py` and tracked in `projects.jso
 - **Dashboard:** React + TypeScript (Vite) — the ArkhitX UI
 - **Containerization:** Docker + Docker Compose
 
+## UI Design System (Dashboard + All Solution Projects)
+
+Every React frontend — `framework/frontend/` **and** `projects/{slug}/frontend/` — MUST use the shared ArkhitX design system:
+
+- **Canonical files:** `framework/design-system/` (copied by `scripts/new_project.py`)
+- **Documentation:** `framework/docs/DESIGN-SYSTEM.md` — read before building Phase 0 UI
+- **Tokens:** `--ax-*` CSS variables, Tailwind `ax-*` colors — never default gray/white page shells
+- **Components:** `ax-panel`, `ax-btn-primary`, `ax-input`, etc.
+- **Theme:** Dark default + **light/dark toggle** via `ThemeToggle` in the app header; call `initTheme()` in `main.tsx`
+
+Governance/Tools-specific layouts live only in the dashboard. Solution apps use the same shell and tokens for domain pages.
+
 ## Architecture Documentation (Required for Every Project)
 
 Every project in `projects/{slug}/` must include visual architecture docs in `docs/`:

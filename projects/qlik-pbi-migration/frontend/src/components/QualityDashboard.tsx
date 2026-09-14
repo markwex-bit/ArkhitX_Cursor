@@ -1,5 +1,6 @@
 import type { ParityRow, QlikQualityResult } from '../types'
 import Badge from './Badge'
+import { DataTable } from './ui/DataTable'
 
 export default function QualityDashboard({
   qlikQuality,
@@ -9,94 +10,106 @@ export default function QualityDashboard({
   parityMatrix: ParityRow[]
 }) {
   return (
-    <div className="space-y-6">
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-gray-800 mb-1">
-          Qlik inventory quality pass
-        </h3>
-        <p className="text-xs text-gray-500 mb-4">
-          Completeness score (0–1) and flags per Qlik app, computed deterministically from
-          field-level availability — same logic as the Power BI eligibility filter, scaled to
-          this side of the estate.
-        </p>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-gray-500 border-b border-gray-100">
-              <th className="pb-2">App</th>
-              <th className="pb-2">Completeness</th>
-              <th className="pb-2">Flags</th>
-            </tr>
-          </thead>
-          <tbody>
-            {qlikQuality.map((q) => (
-              <tr key={q.app_id} className="border-b border-gray-50">
-                <td className="py-2 font-medium text-gray-800">{q.name}</td>
-                <td className="py-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-100 rounded h-2 overflow-hidden">
+    <div className="space-y-3">
+      <div className="ax-panel overflow-hidden">
+        <div className="ax-panel-toolbar">
+          <span className="ax-panel-toolbar-title">Qlik quality pass</span>
+          <div className="ax-panel-toolbar-meta">
+            <span>{qlikQuality.length} apps</span>
+          </div>
+        </div>
+        <div className="p-2">
+          <DataTable
+            rows={qlikQuality}
+            rowKey={(q) => q.app_id}
+            maxHeight="min(280px, calc(100vh - 320px))"
+            columns={[
+              {
+                key: 'app',
+                header: 'App',
+                render: (q) => <span className="font-medium">{q.name}</span>,
+              },
+              {
+                key: 'score',
+                header: 'Completeness',
+                render: (q) => (
+                  <div className="flex items-center gap-2 min-w-[140px]">
+                    <div className="flex-1 bg-ax-bg-3 rounded h-1.5 overflow-hidden max-w-[96px]">
                       <div
-                        className={`h-2 ${
+                        className={`h-1.5 ${
                           q.completeness_score >= 0.75
-                            ? 'bg-emerald-400'
+                            ? 'bg-ax-green'
                             : q.completeness_score >= 0.5
-                              ? 'bg-amber-400'
-                              : 'bg-rose-400'
+                              ? 'bg-ax-amber'
+                              : 'bg-ax-red'
                         }`}
                         style={{ width: `${q.completeness_score * 100}%` }}
                       />
                     </div>
-                    <span className="text-gray-600">{q.completeness_score.toFixed(2)}</span>
+                    <span className="text-ax-text-dim tabular-nums font-mono">
+                      {q.completeness_score.toFixed(2)}
+                    </span>
                   </div>
-                </td>
-                <td className="py-2">
-                  {q.flags.length === 0 ? (
-                    <span className="text-gray-400">—</span>
+                ),
+              },
+              {
+                key: 'flags',
+                header: 'Flags',
+                render: (q) =>
+                  q.flags.length === 0 ? (
+                    <span className="text-ax-text-muted">—</span>
                   ) : (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-0.5">
                       {q.flags.map((f) => (
                         <Badge key={f} tone="Medium">
                           {f.replace(/_/g, ' ')}
                         </Badge>
                       ))}
                     </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  ),
+              },
+            ]}
+          />
+        </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-gray-800 mb-1">
-          Cross-platform capability parity matrix
-        </h3>
-        <p className="text-xs text-gray-500 mb-4">
-          What's even obtainable from each platform's admin API — a structural finding, not a
-          per-app data-quality bug. See docs/DATA-SCHEMAS.md for the full provenance of each row.
-        </p>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-gray-500 border-b border-gray-100">
-              <th className="pb-2 pr-4">Capability</th>
-              <th className="pb-2 pr-4">Qlik (QRS)</th>
-              <th className="pb-2 pr-4">Power BI (Scanner API)</th>
-              <th className="pb-2">Note</th>
-            </tr>
-          </thead>
-          <tbody>
-            {parityMatrix.map((row) => (
-              <tr key={row.capability} className="border-b border-gray-50 align-top">
-                <td className="py-2 pr-4 font-medium text-gray-800 whitespace-nowrap">
-                  {row.capability}
-                </td>
-                <td className="py-2 pr-4 text-gray-600 whitespace-nowrap">{row.qlik}</td>
-                <td className="py-2 pr-4 text-gray-600 whitespace-nowrap">{row.power_bi}</td>
-                <td className="py-2 text-gray-500">{row.note}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="ax-panel overflow-hidden">
+        <div className="ax-panel-toolbar">
+          <span className="ax-panel-toolbar-title">Platform parity matrix</span>
+          <div className="ax-panel-toolbar-meta">
+            <span>{parityMatrix.length} capabilities</span>
+          </div>
+        </div>
+        <div className="p-2">
+          <DataTable
+            rows={parityMatrix}
+            rowKey={(r) => r.capability}
+            maxHeight="min(360px, calc(100vh - 280px))"
+            columns={[
+              {
+                key: 'capability',
+                header: 'Capability',
+                className: 'whitespace-nowrap',
+                render: (r) => <span className="font-medium">{r.capability}</span>,
+              },
+              {
+                key: 'qlik',
+                header: 'Qlik (QRS)',
+                render: (r) => <span className="text-ax-text-dim">{r.qlik}</span>,
+              },
+              {
+                key: 'pbi',
+                header: 'Power BI',
+                render: (r) => <span className="text-ax-text-dim">{r.power_bi}</span>,
+              },
+              {
+                key: 'note',
+                header: 'Note',
+                render: (r) => <span className="text-ax-text-muted">{r.note}</span>,
+              },
+            ]}
+          />
+        </div>
       </div>
     </div>
   )

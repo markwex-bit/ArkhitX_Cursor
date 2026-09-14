@@ -1,69 +1,84 @@
 import type { BacklogEntry } from '../types'
 import Badge from './Badge'
 import { backlogCsvUrl } from '../services/api'
+import { DataTable } from './ui/DataTable'
 
 export default function Backlog({ entries }: { entries: BacklogEntry[] }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-800">Migration backlog</h3>
-          <p className="text-xs text-gray-500">
-            Only Qlik apps with a "confirmed" sign-off appear here — overrides and
-            "needs more info" are tracked but excluded until resolved.
-          </p>
+    <div className="ax-panel overflow-hidden flex flex-col min-h-0">
+      <div className="ax-panel-toolbar">
+        <span className="ax-panel-toolbar-title">Migration backlog</span>
+        <div className="ax-panel-toolbar-meta">
+          <span>
+            <strong className="text-ax-text">{entries.length}</strong> confirmed
+          </span>
+          <a href={backlogCsvUrl} className="ax-btn-primary py-0.5 px-2">
+            Export CSV
+          </a>
         </div>
-        <a
-          href={backlogCsvUrl}
-          className="text-sm bg-gray-800 hover:bg-gray-900 text-white px-3 py-1.5 rounded"
-        >
-          Export CSV
-        </a>
       </div>
-
-      {entries.length === 0 ? (
-        <p className="text-sm text-gray-500 italic">
-          No confirmed sign-offs yet. Go to the Matches tab, select a candidate, and submit a
-          sign-off to populate the backlog.
-        </p>
-      ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-gray-500 border-b border-gray-100">
-              <th className="pb-2">Qlik app</th>
-              <th className="pb-2">Power BI target</th>
-              <th className="pb-2">Disposition</th>
-              <th className="pb-2">Confidence</th>
-              <th className="pb-2">Effort</th>
-              <th className="pb-2">Reviewer</th>
-              <th className="pb-2">When</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((e, i) => (
-              <tr key={i} className="border-b border-gray-50">
-                <td className="py-2 font-medium text-gray-800">{e.qlik_app_name}</td>
-                <td className="py-2 text-gray-600">{e.pbi_name ?? '—'}</td>
-                <td className="py-2">
-                  {e.disposition ? <Badge tone={e.disposition}>{e.disposition}</Badge> : '—'}
-                </td>
-                <td className="py-2">
-                  {e.confidence_tier ? (
-                    <Badge tone={e.confidence_tier}>{e.confidence_tier}</Badge>
-                  ) : (
-                    '—'
-                  )}
-                </td>
-                <td className="py-2 text-gray-600">{e.effort ?? '—'}</td>
-                <td className="py-2 text-gray-600">{e.reviewer}</td>
-                <td className="py-2 text-gray-500">
-                  {e.timestamp ? new Date(e.timestamp).toLocaleString() : '—'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <div className="p-2">
+        {entries.length === 0 ? (
+          <p className="text-[11px] text-ax-text-muted italic py-6 text-center">
+            No confirmed sign-offs. Select a match candidate and submit sign-off.
+          </p>
+        ) : (
+          <DataTable
+            rows={entries}
+            rowKey={(e) => `${e.qlik_app_id}::${e.pbi_dataset_id ?? 'none'}`}
+            maxHeight="calc(100vh - 240px)"
+            columns={[
+              {
+                key: 'qlik',
+                header: 'Qlik app',
+                render: (e) => <span className="font-medium">{e.qlik_app_name}</span>,
+              },
+              {
+                key: 'pbi',
+                header: 'Power BI target',
+                render: (e) => (
+                  <span className="text-ax-text-dim">
+                    {e.pbi_name ?? '—'}
+                    {e.pbi_name && e.pbi_dataset_id ? (
+                      <span className="text-ax-text-muted font-mono text-[10px] block">{e.pbi_dataset_id}</span>
+                    ) : null}
+                  </span>
+                ),
+              },
+              {
+                key: 'disp',
+                header: 'Disposition',
+                render: (e) => (e.disposition ? <Badge tone={e.disposition}>{e.disposition}</Badge> : '—'),
+              },
+              {
+                key: 'conf',
+                header: 'Conf.',
+                render: (e) =>
+                  e.confidence_tier ? <Badge tone={e.confidence_tier}>{e.confidence_tier}</Badge> : '—',
+              },
+              {
+                key: 'effort',
+                header: 'Effort',
+                render: (e) => <span className="text-ax-text-dim">{e.effort ?? '—'}</span>,
+              },
+              {
+                key: 'reviewer',
+                header: 'Reviewer',
+                render: (e) => <span className="text-ax-text-dim">{e.reviewer}</span>,
+              },
+              {
+                key: 'when',
+                header: 'When',
+                render: (e) => (
+                  <span className="text-ax-text-muted font-mono text-[10px] whitespace-nowrap">
+                    {e.timestamp ? new Date(e.timestamp).toLocaleString() : '—'}
+                  </span>
+                ),
+              },
+            ]}
+          />
+        )}
+      </div>
     </div>
   )
 }

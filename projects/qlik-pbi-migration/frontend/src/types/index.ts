@@ -26,8 +26,55 @@ export interface EligibilitySummary {
   total: number
   eligible_count: number
   excluded_count: number
+  eligible_pct: number
+  excluded_pct: number
   by_reason: Record<string, number>
   results: EligibilityResult[]
+}
+
+export interface IntakeSummary {
+  data_source: 'sample' | 'live'
+  qlik_count: number
+  pbi_count: number
+  qlik_source_label: string
+  pbi_source_label: string
+  load_steps: string[]
+  workflow_doc: string
+}
+
+export interface MetadataFieldStat {
+  field_key: string
+  label: string
+  tier: string
+  present_count: number
+  total: number
+  pct: number
+}
+
+export interface MetadataCoverageReport {
+  platform: string
+  total_apps: number
+  fields: MetadataFieldStat[]
+}
+
+export interface QlikQualificationResult {
+  app_id: string
+  name: string
+  qualified: boolean
+  completeness_score: number
+  exclusion_reasons: string[]
+  quality_flags: string[]
+}
+
+export interface QlikQualificationSummary {
+  total: number
+  qualified_count: number
+  excluded_count: number
+  qualified_pct: number
+  excluded_pct: number
+  by_reason: Record<string, number>
+  completeness_threshold: number
+  results: QlikQualificationResult[]
 }
 
 export interface QlikQualityResult {

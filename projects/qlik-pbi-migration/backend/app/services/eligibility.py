@@ -142,10 +142,14 @@ def evaluate_eligibility(apps: list[PowerBIApp], now: datetime | None = None) ->
         )
 
     excluded = sum(1 for r in results if not r.eligible)
+    eligible = len(results) - excluded
+    total = len(results)
     return EligibilitySummary(
-        total=len(results),
-        eligible_count=len(results) - excluded,
+        total=total,
+        eligible_count=eligible,
         excluded_count=excluded,
+        eligible_pct=round(100.0 * eligible / total, 1) if total else 0.0,
+        excluded_pct=round(100.0 * excluded / total, 1) if total else 0.0,
         by_reason=by_reason,
         results=results,
     )

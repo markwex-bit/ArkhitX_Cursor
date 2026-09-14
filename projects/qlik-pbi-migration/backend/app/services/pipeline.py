@@ -23,6 +23,7 @@ from typing import Any
 
 from app.agents.migration_advisor_agent import MigrationAdvisorAgent
 from app.agents.semantic_match_agent import SemanticMatchAgent
+from app.governance.pipeline_log import timed_pipeline_step
 from app.models.catalog import (
     Disposition,
     EligibilitySummary,
@@ -30,9 +31,10 @@ from app.models.catalog import (
     ParityRow,
     QlikApp,
     QlikDispositionResult,
+    QlikQualificationSummary,
     QlikQualityResult,
 )
-from app.services import eligibility, ingestion, matching, quality
+from app.services import eligibility, ingestion, matching, quality, qlik_qualification
 
 # Only run the (relatively expensive, real-API-calling) semantic match + advisor
 # agents on this many top candidates per Qlik app, to keep the demo fast and
@@ -45,11 +47,13 @@ class PipelineResult:
     def __init__(
         self,
         eligibility_summary: EligibilitySummary,
+        qlik_qualification_summary: QlikQualificationSummary,
         qlik_quality: list[QlikQualityResult],
         parity_matrix: list[ParityRow],
         dispositions: list[QlikDispositionResult],
     ):
         self.eligibility_summary = eligibility_summary
+        self.qlik_qualification_summary = qlik_qualification_summary
         self.qlik_quality = qlik_quality
         self.parity_matrix = parity_matrix
         self.dispositions = dispositions
@@ -107,20 +111,63 @@ def _run_advisor(qapp: QlikApp, qlik_quality_flags: list[str], best_candidate: M
 
 
 def run_pipeline(use_llm: bool = True) -> PipelineResult:
-    qlik_apps = ingestion.load_qlik_apps()
-    pbi_apps = ingestion.load_pbi_apps()
+    with timed_pipeline_step(
+        "Load Qlik + Power BI catalogs",
+        stage="Data Ingestion",
+        step_type="File I/O",
+        input_summary={"use_llm": use_llm},
+    ) as out:
+        qlik_apps = ingestion.load_qlik_apps()
+        pbi_apps = ingestion.load_pbi_apps()
+        out["summary"] = f"{len(qlik_apps)} Qlik apps, {len(pbi_apps)} PBI datasets"
 
-    elig_summary = eligibility.evaluate_eligibility(pbi_apps)
-    clean_pool = eligibility.eligible_pbi_apps(pbi_apps, elig_summary)
-    papp_lookup = {a.dataset_id: a for a in clean_pool}
+    with timed_pipeline_step(
+        "Evaluate Power BI eligibility",
+        stage="Eligibility",
+        step_type="System",
+        input_summary={"pbi_count": len(pbi_apps)},
+    ) as out:
+        elig_summary = eligibility.evaluate_eligibility(pbi_apps)
+        clean_pool = eligibility.eligible_pbi_apps(pbi_apps, elig_summary)
+        papp_lookup = {a.dataset_id: a for a in clean_pool}
+        out["summary"] = (
+            f"{elig_summary.eligible_count} eligible of {elig_summary.total} PBI datasets"
+        )
 
-    qlik_quality = quality.evaluate_qlik_quality(qlik_apps)
-    qlik_quality_by_id = {q.app_id: q for q in qlik_quality}
+    with timed_pipeline_step(
+        "Evaluate Qlik inventory quality",
+        stage="Qlik Quality",
+        step_type="System",
+        input_summary={"qlik_count": len(qlik_apps)},
+    ) as out:
+        qlik_quality = quality.evaluate_qlik_quality(qlik_apps)
+        qlik_quality_by_id = {q.app_id: q for q in qlik_quality}
+        out["summary"] = f"Scored {len(qlik_quality)} Qlik apps"
 
-    candidates_by_qlik = matching.generate_candidates(qlik_apps, clean_pool)
+    with timed_pipeline_step(
+        "Evaluate Qlik qualification",
+        stage="Qlik Qualification",
+        step_type="System",
+        input_summary={"qlik_count": len(qlik_apps)},
+    ) as out:
+        qlik_qual_summary = qlik_qualification.evaluate_qlik_qualification(qlik_apps, qlik_quality)
+        qualified_qlik = qlik_qualification.qualified_qlik_apps(qlik_apps, qlik_qual_summary)
+        out["summary"] = (
+            f"{qlik_qual_summary.qualified_count} qualified of {qlik_qual_summary.total} Qlik apps"
+        )
+
+    with timed_pipeline_step(
+        "Generate match candidates (blocking)",
+        stage="Candidate Generation",
+        step_type="System",
+        input_summary={"qlik_count": len(qualified_qlik), "pbi_pool": len(clean_pool)},
+    ) as out:
+        candidates_by_qlik = matching.generate_candidates(qualified_qlik, clean_pool)
+        total_candidates = sum(len(v) for v in candidates_by_qlik.values())
+        out["summary"] = f"{total_candidates} candidates across {len(candidates_by_qlik)} Qlik apps"
 
     dispositions: list[QlikDispositionResult] = []
-    for qapp in qlik_apps:
+    for qapp in qualified_qlik:
         candidates = candidates_by_qlik.get(qapp.id, [])
 
         if use_llm:
@@ -155,6 +202,7 @@ def run_pipeline(use_llm: bool = True) -> PipelineResult:
 
     return PipelineResult(
         eligibility_summary=elig_summary,
+        qlik_qualification_summary=qlik_qual_summary,
         qlik_quality=qlik_quality,
         parity_matrix=quality.get_parity_matrix(),
         dispositions=dispositions,
@@ -162,9 +210,37 @@ def run_pipeline(use_llm: bool = True) -> PipelineResult:
 
 
 @lru_cache
-def run_pipeline_cached(use_llm: bool = True) -> PipelineResult:
-    """LLM calls are real API calls with real latency/cost — cache the result
-    for the lifetime of the process so the UI doesn't re-trigger them on
-    every page load. Call ingestion.load_*.cache_clear() + this function's
-    .cache_clear() to force a refresh."""
+def run_pipeline_cached(use_llm: bool = False) -> PipelineResult:
+    """Cache pipeline results per use_llm flag. LLM is expensive — only invoke
+    via refresh_pipeline_with_llm(), never from read-only GET handlers."""
     return run_pipeline(use_llm=use_llm)
+
+
+_llm_analysis_ready = False
+
+
+def llm_analysis_ready() -> bool:
+    return _llm_analysis_ready
+
+
+def get_deterministic_pipeline() -> PipelineResult:
+    return run_pipeline_cached(use_llm=False)
+
+
+def get_dispositions_pipeline() -> PipelineResult:
+    """Dispositions with LLM fields only after an explicit refresh."""
+    if _llm_analysis_ready:
+        return run_pipeline_cached(use_llm=True)
+    return run_pipeline_cached(use_llm=False)
+
+
+def refresh_pipeline_with_llm() -> PipelineResult:
+    """Clear caches and run the full pipeline including governed LLM agents."""
+    global _llm_analysis_ready
+    ingestion.load_qlik_apps.cache_clear()
+    ingestion.load_pbi_apps.cache_clear()
+    run_pipeline_cached.cache_clear()
+    _llm_analysis_ready = False
+    result = run_pipeline_cached(use_llm=True)
+    _llm_analysis_ready = True
+    return result

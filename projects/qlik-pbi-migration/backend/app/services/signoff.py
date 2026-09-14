@@ -12,8 +12,56 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
+from app.governance.arkhitx_client import get_arkhitx_client
 from app.models.catalog import BacklogEntry, SignOffRecord, SignOffRequest
 from app.models.db_models import SignOffDB
+
+
+def _log_signoff_governance(request: SignOffRequest) -> None:
+    client = get_arkhitx_client()
+    if not client:
+        return
+
+    items = {
+        "qlik_app_id": request.qlik_app_id,
+        "pbi_dataset_id": request.pbi_dataset_id,
+        "decision": request.decision.value,
+    }
+    audit_id = client.log_audit(
+        actor=request.reviewer,
+        action=f"signoff_{request.decision.value}",
+        context={
+            "scope": "solution",
+            "stage": "HITL Sign-off",
+            "process_group": "Migration Assessor Pipeline",
+            "step_name": "Migration sign-off",
+            "step_type": "Gate + HITL",
+            **items,
+            "notes": request.notes,
+        },
+        result={"success": True, "message": request.notes or request.decision.value},
+    )
+    client.log_gate_decision(
+        gate_name="migration_signoff",
+        decision=request.decision.value,
+        reviewer=request.reviewer,
+        notes=request.notes,
+        items_reviewed=items,
+    )
+    client.log_pipeline_step(
+        step_name=f"Sign-off: {request.qlik_app_id}",
+        status="completed",
+        stage="HITL Sign-off",
+        process_group="Migration Assessor Pipeline",
+        agent=request.reviewer,
+        step_type="Gate + HITL",
+        input_summary={"scope": "solution", **items, "notes": request.notes},
+        output_summary={
+            "audit_id": audit_id,
+            "summary": request.notes or f"Decision: {request.decision.value}",
+            "confidence": 1.0,
+        },
+    )
 
 
 def create_signoff(db: Session, request: SignOffRequest) -> SignOffRecord:
@@ -27,6 +75,9 @@ def create_signoff(db: Session, request: SignOffRequest) -> SignOffRecord:
     db.add(record)
     db.commit()
     db.refresh(record)
+
+    _log_signoff_governance(request)
+
     return SignOffRecord(
         qlik_app_id=record.qlik_app_id,
         pbi_dataset_id=record.pbi_dataset_id,

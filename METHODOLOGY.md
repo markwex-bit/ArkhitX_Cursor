@@ -45,6 +45,9 @@ frontend, docker-compose). That is a convenience layout — not ArkhitX governan
 Phase 0 still means: no `arkhitx-sdk` required, no ArkhitX PostgreSQL or Neo4j
 connection for the POC to run.
 
+Solution UIs use the shared ArkhitX design system (dark/light theme, `ax-*` tokens) —
+see `framework/docs/DESIGN-SYSTEM.md`. New projects get this from `scripts/new_project.py`.
+
 ---
 
 ## The Four Layers

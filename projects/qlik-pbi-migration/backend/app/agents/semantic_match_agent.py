@@ -1,27 +1,23 @@
 """
 Stage 2 — Semantic matching (LLM), only ever run on candidates that already
 survived deterministic blocking (see services/matching.py).
-
-Per the "deterministic vs. AI-agent boundary" in the project plan: this agent
-never invents facts. It is fed the deterministic signals already computed
-(lineage match, name/measure overlap, which fields were even available) and
-is asked to judge business-intent equivalence — the one thing structured
-fields can't resolve on their own (e.g. "Total Revenue" vs "Rep Revenue" vs
-"Regional Sales Performance" all sound related but aren't the same thing).
-
-If no ANTHROPIC_API_KEY is configured, or the call fails, this degrades to a
-clearly-labeled deterministic fallback (`llm_used: False`) rather than
-pretending to have made a judgment it didn't make.
 """
 from __future__ import annotations
 
 from typing import Any
 
-from app.agents.base_agent import BaseAgent
+from arkhitx import GovernedBaseAgent
+
+from app.governance.arkhitx_client import get_arkhitx_client
 
 
-class SemanticMatchAgent(BaseAgent):
-    def get_system_prompt(self) -> str:
+class SemanticMatchAgent(GovernedBaseAgent):
+    agent_id = "semantic-match"
+
+    def __init__(self):
+        super().__init__(arkhitx=get_arkhitx_client())
+
+    def _default_system_prompt(self) -> str:
         return """You are a BI migration analyst comparing a Qlik Sense application to a \
 candidate Power BI dataset/report to judge whether they answer the same business question.
 
@@ -40,10 +36,13 @@ Do not invent facts not present in the input. If information is insufficient to 
 in the rationale and score conservatively (below 50)."""
 
     def _grounding_query(self, user_message: str) -> dict | None:
-        # Phase 3 hook — once wired to GovernedBaseAgent, this would pull
-        # related knowledge-graph nodes (e.g. other apps sharing the same
-        # data connection) to ground the comparison further.
-        return None
+        return {
+            "retrieval_strategy": "graph",
+            "entity_type": "QlikApp",
+            "depth": 2,
+            "stage": "Semantic Match",
+            "process_group": "Migration Assessor Pipeline",
+        }
 
     def process(self, data: dict[str, Any]) -> dict[str, Any]:
         qlik = data["qlik"]

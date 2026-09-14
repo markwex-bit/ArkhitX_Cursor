@@ -9,11 +9,18 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.agents.base_agent import BaseAgent
+from arkhitx import GovernedBaseAgent
+
+from app.governance.arkhitx_client import get_arkhitx_client
 
 
-class MigrationAdvisorAgent(BaseAgent):
-    def get_system_prompt(self) -> str:
+class MigrationAdvisorAgent(GovernedBaseAgent):
+    agent_id = "migration-advisor"
+
+    def __init__(self):
+        super().__init__(arkhitx=get_arkhitx_client())
+
+    def _default_system_prompt(self) -> str:
         return """You are a BI migration advisor recommending what to do with a Qlik Sense \
 application that is being sunset, given zero or more candidate Power BI replacements.
 
@@ -38,7 +45,13 @@ Guidance:
 the semantic match was unavailable (llm_used: false)."""
 
     def _grounding_query(self, user_message: str) -> dict | None:
-        return None
+        return {
+            "retrieval_strategy": "graph",
+            "entity_type": "PowerBIDataset",
+            "depth": 1,
+            "stage": "Migration Advisor",
+            "process_group": "Migration Assessor Pipeline",
+        }
 
     def process(self, data: dict[str, Any]) -> dict[str, Any]:
         qlik_name = data["qlik_name"]
@@ -77,7 +90,6 @@ Recommend a disposition."""
                 "requires_human_review": bool(result.get("requires_human_review", True)),
             }
         except Exception as exc:  # noqa: BLE001 - deliberate broad catch for graceful degradation
-            # Deterministic fallback — never silently invents a confident recommendation.
             if candidate is None:
                 disposition = (
                     "Sunset - No Replacement Needed"

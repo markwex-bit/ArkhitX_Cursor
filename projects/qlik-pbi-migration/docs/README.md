@@ -4,6 +4,7 @@
 
 | File                 | Phase | Contents                              |
 |----------------------|-------|---------------------------------------|
+| **USER-WORKFLOW.md** | 0     | **Start here** — one-page intake → qualify → overlap process |
 | ARCHITECTURE.md      | 0     | Mermaid source, ASCII diagram, tables |
 | architecture-overview.html | 0 | Browser-rendered architecture diagrams |
 | PHASE-0-BUILD.md     | 0     | What was built and key decisions      |

@@ -88,6 +88,8 @@ class EligibilitySummary(BaseModel):
     total: int
     eligible_count: int
     excluded_count: int
+    eligible_pct: float = 0.0
+    excluded_pct: float = 0.0
     by_reason: dict[str, int]
     results: list[EligibilityResult]
 
@@ -99,6 +101,51 @@ class QlikQualityResult(BaseModel):
     name: str
     completeness_score: float
     flags: list[str] = Field(default_factory=list)
+
+
+class QlikQualificationResult(BaseModel):
+    app_id: str
+    name: str
+    qualified: bool
+    completeness_score: float
+    exclusion_reasons: list[str] = Field(default_factory=list)
+    quality_flags: list[str] = Field(default_factory=list)
+
+
+class QlikQualificationSummary(BaseModel):
+    total: int
+    qualified_count: int
+    excluded_count: int
+    qualified_pct: float
+    excluded_pct: float
+    by_reason: dict[str, int]
+    completeness_threshold: float
+    results: list[QlikQualificationResult]
+
+
+class MetadataFieldStat(BaseModel):
+    field_key: str
+    label: str
+    tier: str
+    present_count: int
+    total: int
+    pct: float
+
+
+class MetadataCoverageReport(BaseModel):
+    platform: str
+    total_apps: int
+    fields: list[MetadataFieldStat]
+
+
+class IntakeSummary(BaseModel):
+    data_source: str
+    qlik_count: int
+    pbi_count: int
+    qlik_source_label: str
+    pbi_source_label: str
+    load_steps: list[str]
+    workflow_doc: str
 
 
 class ParityRow(BaseModel):

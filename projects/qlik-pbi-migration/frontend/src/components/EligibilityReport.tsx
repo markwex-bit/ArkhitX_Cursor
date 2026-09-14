@@ -1,13 +1,14 @@
-import type { EligibilitySummary } from '../types'
+import type { EligibilitySummary, EligibilityResult } from '../types'
 import Badge from './Badge'
+import { DataTable } from './ui/DataTable'
 
 const REASON_LABELS: Record<string, string> = {
   personal_workspace: 'Personal workspace',
   test_or_sandbox_name: 'Test / sandbox / copy naming',
-  stale: 'Abandoned / stale (no refresh in 180+ days)',
-  orphaned_dataset: 'Orphaned dataset (no report built on it)',
-  broken_lineage: 'Broken lineage (no data source captured)',
-  duplicate: 'Duplicate copy (collapsed to canonical)',
+  stale: 'Abandoned / stale (180+ days)',
+  orphaned_dataset: 'Orphaned dataset',
+  broken_lineage: 'Broken lineage',
+  duplicate: 'Duplicate copy',
 }
 
 export default function EligibilityReport({ summary }: { summary: EligibilitySummary }) {
@@ -15,132 +16,130 @@ export default function EligibilityReport({ summary }: { summary: EligibilitySum
   const eligible = summary.results.filter((r) => r.eligible)
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Total Power BI apps scanned" value={summary.total} />
-        <StatCard label="Eligible for matching" value={summary.eligible_count} tone="emerald" />
-        <StatCard label="Excluded before matching" value={summary.excluded_count} tone="rose" />
-      </div>
+    <div className="space-y-3 flex flex-col min-h-0">
+      <div className="ax-panel overflow-hidden flex flex-col min-h-0">
+        <div className="ax-panel-toolbar">
+          <span className="ax-panel-toolbar-title">Phase 2 — Power BI qualification</span>
+          <div className="ax-panel-toolbar-meta">
+            <span>
+              <strong className="text-ax-text">{summary.total}</strong> scanned
+            </span>
+            <span>
+              <strong className="text-ax-green">{summary.eligible_count}</strong> eligible (
+              {summary.eligible_pct}%)
+            </span>
+            <span>
+              <strong className="text-ax-red">{summary.excluded_count}</strong> excluded (
+              {summary.excluded_pct}%)
+            </span>
+          </div>
+        </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-gray-800 mb-1">
-          Exclusion reasons — aggregate counts, not per-app narrative
-        </h3>
-        <p className="text-xs text-gray-500 mb-4">
-          Every reason below is a deterministic rule against structured metadata. No LLM is
-          involved in this stage — see the "Deterministic vs. AI-agent boundary" note in the
-          project docs.
-        </p>
-        <div className="space-y-2">
+        <div className="ax-panel-body space-y-2">
+          <p className="text-[10px] text-ax-text-muted leading-relaxed">
+            Exclusion reasons — aggregate counts from deterministic rules (no LLM).
+          </p>
           {Object.entries(summary.by_reason)
             .sort((a, b) => b[1] - a[1])
             .map(([reason, count]) => (
-              <div key={reason} className="flex items-center gap-3">
-                <div className="w-56 text-sm text-gray-700 flex-shrink-0">
+              <div key={reason} className="flex items-center gap-2">
+                <div className="w-44 text-[11px] text-ax-text-dim flex-shrink-0 truncate" title={REASON_LABELS[reason] ?? reason}>
                   {REASON_LABELS[reason] ?? reason}
                 </div>
-                <div className="flex-1 bg-gray-100 rounded h-3 overflow-hidden">
+                <div className="flex-1 bg-ax-bg-3 rounded h-1.5 overflow-hidden">
                   <div
-                    className="bg-rose-400 h-3"
+                    className="bg-ax-red h-1.5 opacity-80"
                     style={{ width: `${Math.min(100, (count / summary.total) * 100)}%` }}
                   />
                 </div>
-                <div className="w-8 text-sm text-gray-600 text-right">{count}</div>
+                <div className="w-6 text-[11px] text-ax-text-dim text-right tabular-nums">{count}</div>
               </div>
             ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
-            Clean candidate pool ({eligible.length}) — the only apps that ever reach matching
-          </h3>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500 border-b border-gray-100">
-                <th className="pb-2">Name</th>
-                <th className="pb-2">Workspace</th>
-                <th className="pb-2">Quality flags</th>
-              </tr>
-            </thead>
-            <tbody>
-              {eligible.map((r) => (
-                <tr key={r.dataset_id} className="border-b border-gray-50">
-                  <td className="py-2 font-medium text-gray-800">{r.name}</td>
-                  <td className="py-2 text-gray-600">{r.workspace_name}</td>
-                  <td className="py-2">
-                    {r.quality_flags.length === 0 ? (
-                      <span className="text-gray-400">—</span>
-                    ) : (
-                      <div className="flex flex-wrap gap-1">
-                        {r.quality_flags.map((f) => (
-                          <Badge key={f} tone="Medium">
-                            {f.replace(/_/g, ' ')}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 min-h-0 flex-1">
+        <div className="ax-panel overflow-hidden flex flex-col min-h-0">
+          <div className="ax-panel-header">Clean pool ({eligible.length})</div>
+          <div className="p-2 min-h-0 flex-1">
+            <DataTable
+              rows={eligible}
+              rowKey={(r) => r.dataset_id}
+              columns={eligibleColumns}
+              emptyMessage="No eligible datasets"
+            />
+          </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
-            Excluded ({excluded.length}) — never reach matching
-          </h3>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500 border-b border-gray-100">
-                <th className="pb-2">Name</th>
-                <th className="pb-2">Workspace</th>
-                <th className="pb-2">Reasons</th>
-              </tr>
-            </thead>
-            <tbody>
-              {excluded.map((r) => (
-                <tr key={r.dataset_id} className="border-b border-gray-50">
-                  <td className="py-2 font-medium text-gray-800">{r.name}</td>
-                  <td className="py-2 text-gray-600">{r.workspace_name}</td>
-                  <td className="py-2">
-                    <div className="flex flex-wrap gap-1">
-                      {r.exclusion_reasons.map((reason) => (
-                        <Badge key={reason} tone="Low">
-                          {reason.startsWith('duplicate_of:')
-                            ? 'duplicate'
-                            : REASON_LABELS[reason]?.split(' (')[0] ?? reason}
-                        </Badge>
-                      ))}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="ax-panel overflow-hidden flex flex-col min-h-0">
+          <div className="ax-panel-header">Excluded ({excluded.length})</div>
+          <div className="p-2 min-h-0 flex-1">
+            <DataTable
+              rows={excluded}
+              rowKey={(r) => r.dataset_id}
+              columns={excludedColumns}
+              emptyMessage="No excluded datasets"
+            />
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-function StatCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string
-  value: number
-  tone?: 'emerald' | 'rose'
-}) {
-  const toneClass =
-    tone === 'emerald' ? 'text-emerald-700' : tone === 'rose' ? 'text-rose-700' : 'text-gray-800'
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
-      <div className={`text-3xl font-bold ${toneClass}`}>{value}</div>
-      <div className="text-sm text-gray-500 mt-1">{label}</div>
-    </div>
-  )
-}
+const eligibleColumns = [
+  {
+    key: 'name',
+    header: 'Name',
+    render: (r: EligibilityResult) => <span className="font-medium">{r.name}</span>,
+  },
+  {
+    key: 'workspace',
+    header: 'Workspace',
+    render: (r: EligibilityResult) => <span className="text-ax-text-dim">{r.workspace_name}</span>,
+  },
+  {
+    key: 'flags',
+    header: 'Flags',
+    render: (r: EligibilityResult) =>
+      r.quality_flags.length === 0 ? (
+        <span className="text-ax-text-muted">—</span>
+      ) : (
+        <div className="flex flex-wrap gap-0.5">
+          {r.quality_flags.map((f) => (
+            <Badge key={f} tone="Medium">
+              {f.replace(/_/g, ' ')}
+            </Badge>
+          ))}
+        </div>
+      ),
+  },
+]
+
+const excludedColumns = [
+  {
+    key: 'name',
+    header: 'Name',
+    render: (r: EligibilityResult) => <span className="font-medium">{r.name}</span>,
+  },
+  {
+    key: 'workspace',
+    header: 'Workspace',
+    render: (r: EligibilityResult) => <span className="text-ax-text-dim">{r.workspace_name}</span>,
+  },
+  {
+    key: 'reasons',
+    header: 'Reasons',
+    render: (r: EligibilityResult) => (
+      <div className="flex flex-wrap gap-0.5">
+        {r.exclusion_reasons.map((reason) => (
+          <Badge key={reason} tone="Low">
+            {reason.startsWith('duplicate_of:')
+              ? 'duplicate'
+              : REASON_LABELS[reason]?.split(' (')[0] ?? reason}
+          </Badge>
+        ))}
+      </div>
+    ),
+  },
+]

@@ -1,3 +1,318 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Dark theme (default) */
+  :root,
+  [data-theme='dark'] {
+    --ax-bg: #0a0a1a;
+    --ax-bg2: #111127;
+    --ax-bg3: #1a1a35;
+    --ax-bg4: #222245;
+    --ax-bg-hover: #2a2a4a;
+
+    --ax-border: #2a2a50;
+    --ax-border-light: #333366;
+
+    --ax-text: #e2e8f0;
+    --ax-text-dim: #94a3b8;
+    --ax-text-muted: #64748b;
+
+    --ax-primary: #667eea;
+    --ax-primary-light: #818cf8;
+    --ax-primary-hover: #5568d3;
+    --ax-accent: #a78bfa;
+
+    --ax-green: #22c55e;
+    --ax-amber: #f59e0b;
+    --ax-red: #ef4444;
+    --ax-blue: #3b82f6;
+
+    --ax-gate-border: #7c3aed;
+    --ax-gate-bg: #1e1040;
+    --ax-gate-text: #c4b5fd;
+
+    --ax-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    --ax-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+    --ax-alert-ok-bg: rgb(34 197 94 / 0.1);
+    --ax-alert-ok-text: rgb(110 231 183);
+    --ax-alert-ok-border: rgb(34 197 94 / 0.3);
+    --ax-alert-err-bg: rgb(239 68 68 / 0.1);
+    --ax-alert-err-text: rgb(252 165 165);
+    --ax-alert-err-border: rgb(239 68 68 / 0.3);
+    --ax-alert-info-bg: rgb(102 126 234 / 0.1);
+    --ax-alert-info-text: var(--ax-primary-light);
+    --ax-alert-info-border: rgb(102 126 234 / 0.3);
+    --ax-alert-warn-bg: rgb(245 158 11 / 0.1);
+    --ax-alert-warn-text: rgb(251 191 36);
+    --ax-alert-warn-border: rgb(245 158 11 / 0.3);
+  }
+
+  [data-theme='light'] {
+    --ax-bg: #f1f5f9;
+    --ax-bg2: #ffffff;
+    --ax-bg3: #f8fafc;
+    --ax-bg4: #e2e8f0;
+    --ax-bg-hover: #e2e8f0;
+
+    --ax-border: #cbd5e1;
+    --ax-border-light: #e2e8f0;
+
+    --ax-text: #0f172a;
+    --ax-text-dim: #475569;
+    --ax-text-muted: #64748b;
+
+    --ax-primary: #4f46e5;
+    --ax-primary-light: #6366f1;
+    --ax-primary-hover: #4338ca;
+    --ax-accent: #7c3aed;
+
+    --ax-green: #16a34a;
+    --ax-amber: #d97706;
+    --ax-red: #dc2626;
+    --ax-blue: #2563eb;
+
+    --ax-gate-border: #8b5cf6;
+    --ax-gate-bg: #f5f3ff;
+    --ax-gate-text: #6d28d9;
+
+    --ax-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+    --ax-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+
+    --ax-alert-ok-bg: rgb(34 197 94 / 0.12);
+    --ax-alert-ok-text: rgb(21 128 61);
+    --ax-alert-ok-border: rgb(34 197 94 / 0.35);
+    --ax-alert-err-bg: rgb(239 68 68 / 0.1);
+    --ax-alert-err-text: rgb(185 28 28);
+    --ax-alert-err-border: rgb(239 68 68 / 0.35);
+    --ax-alert-info-bg: rgb(99 102 241 / 0.1);
+    --ax-alert-info-text: rgb(67 56 202);
+    --ax-alert-info-border: rgb(99 102 241 / 0.35);
+    --ax-alert-warn-bg: rgb(245 158 11 / 0.12);
+    --ax-alert-warn-text: rgb(180 83 9);
+    --ax-alert-warn-border: rgb(245 158 11 / 0.35);
+  }
+
+  * {
+    border-color: var(--ax-border);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    background-color: var(--ax-bg);
+    color: var(--ax-text);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold tracking-tight;
+    color: var(--ax-text);
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--ax-border);
+    border-radius: 3px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--ax-border-light);
+  }
+}
+
+@keyframes gate-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(124, 58, 237, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.6);
+  }
+}
+
+@layer components {
+  .ax-page {
+    @apply h-full flex flex-col min-h-0;
+  }
+  .ax-page-header {
+    @apply flex-shrink-0 border-b border-ax-border bg-ax-bg-2 px-4 py-2;
+  }
+  .ax-page-body {
+    @apply flex-1 min-h-0 overflow-auto p-3;
+  }
+
+  .ax-btn {
+    @apply inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors disabled:opacity-50;
+  }
+  .ax-btn-primary {
+    @apply ax-btn bg-ax-primary text-white hover:bg-ax-primary-hover;
+  }
+  .ax-btn-secondary {
+    @apply ax-btn bg-ax-bg-3 border border-ax-border text-ax-text-dim hover:text-ax-text hover:bg-ax-bg-hover;
+  }
+  .ax-btn-ghost {
+    @apply ax-btn text-ax-text-muted hover:text-ax-text hover:bg-ax-bg-3;
+  }
+
+  .ax-input {
+    @apply w-full px-3 py-2 text-xs rounded-md bg-ax-bg-3 border border-ax-border text-ax-text placeholder:text-ax-text-muted focus:outline-none focus:border-ax-primary;
+  }
+  .ax-textarea {
+    @apply ax-input resize-y min-h-[72px];
+  }
+  .ax-label {
+    @apply block text-[10px] font-medium text-ax-text-muted uppercase tracking-wide mb-1;
+  }
+  .ax-select {
+    @apply ax-input py-1.5;
+  }
+
+  .ax-panel {
+    @apply rounded-lg border border-ax-border bg-ax-bg-2;
+  }
+  .ax-panel-pad {
+    @apply ax-panel p-3;
+  }
+  .ax-panel-header {
+    @apply px-3 py-1.5 border-b border-ax-border text-[10px] font-semibold text-ax-text-muted uppercase tracking-wide;
+  }
+  .ax-panel-toolbar {
+    @apply px-3 py-2 border-b border-ax-border bg-ax-bg-2 flex items-center justify-between gap-3 flex-wrap;
+  }
+  .ax-panel-toolbar-title {
+    @apply text-[11px] font-bold uppercase tracking-widest text-ax-text;
+  }
+  .ax-panel-toolbar-meta {
+    @apply flex items-center gap-3 text-[11px] text-ax-text-muted flex-wrap;
+  }
+  .ax-panel-body {
+    @apply p-3;
+  }
+
+  .ax-link {
+    @apply text-ax-primary-light hover:underline text-xs;
+  }
+  .ax-code {
+    @apply bg-ax-bg-3 px-1.5 py-0.5 rounded font-mono text-ax-text-dim text-[10px];
+  }
+  .ax-pre {
+    @apply bg-ax-bg text-ax-text-dim text-[10px] p-3 rounded-lg border border-ax-border overflow-x-auto font-mono;
+  }
+  .ax-empty {
+    @apply text-center py-12 text-ax-text-muted text-sm;
+  }
+  .ax-section-title {
+    @apply text-[10px] font-semibold text-ax-text-muted uppercase tracking-wider;
+  }
+
+  .ax-alert-ok {
+    @apply p-3 rounded-lg text-xs border;
+    background-color: var(--ax-alert-ok-bg);
+    color: var(--ax-alert-ok-text);
+    border-color: var(--ax-alert-ok-border);
+  }
+  .ax-alert-err {
+    @apply p-3 rounded-lg text-xs border;
+    background-color: var(--ax-alert-err-bg);
+    color: var(--ax-alert-err-text);
+    border-color: var(--ax-alert-err-border);
+  }
+  .ax-alert-info {
+    @apply p-3 rounded-lg text-xs border;
+    background-color: var(--ax-alert-info-bg);
+    color: var(--ax-alert-info-text);
+    border-color: var(--ax-alert-info-border);
+  }
+  .ax-alert-warn {
+    @apply p-3 rounded-lg text-xs border;
+    background-color: var(--ax-alert-warn-bg);
+    color: var(--ax-alert-warn-text);
+    border-color: var(--ax-alert-warn-border);
+  }
+
+  .ax-table {
+    @apply w-full text-left border-collapse;
+  }
+  .ax-table thead {
+    @apply sticky top-0 z-10 bg-ax-bg-3 border-b border-ax-border;
+  }
+  .ax-table th {
+    @apply px-2 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-ax-text-muted whitespace-nowrap;
+  }
+  .ax-table td {
+    @apply px-2 py-1.5 text-[11px] text-ax-text align-top;
+  }
+  .ax-table tbody tr {
+    @apply border-b transition-colors;
+    border-color: color-mix(in srgb, var(--ax-border) 50%, transparent);
+  }
+  .ax-table tbody tr:hover {
+    background-color: color-mix(in srgb, var(--ax-bg3) 40%, transparent);
+  }
+
+  .ax-badge {
+    @apply inline-flex items-center gap-1 px-1.5 py-0 rounded text-[10px] font-medium border leading-tight;
+  }
+  .ax-badge-ok {
+    @apply ax-badge;
+    background-color: rgb(34 197 94 / 0.15);
+    color: var(--ax-green);
+    border-color: rgb(34 197 94 / 0.35);
+  }
+  .ax-badge-warn {
+    @apply ax-badge;
+    background-color: rgb(245 158 11 / 0.15);
+    color: var(--ax-amber);
+    border-color: rgb(245 158 11 / 0.35);
+  }
+  .ax-badge-danger {
+    @apply ax-badge;
+    background-color: rgb(239 68 68 / 0.15);
+    color: var(--ax-red);
+    border-color: rgb(239 68 68 / 0.35);
+  }
+  .ax-badge-muted {
+    @apply ax-badge bg-ax-bg-3 text-ax-text-muted border-ax-border;
+  }
+  .ax-badge-info {
+    @apply ax-badge;
+    background-color: rgb(102 126 234 / 0.15);
+    color: var(--ax-primary-light);
+    border-color: rgb(102 126 234 / 0.35);
+  }
+  .ax-badge-qlik {
+    @apply ax-badge;
+    background-color: rgb(59 130 246 / 0.12);
+    color: var(--ax-blue);
+    border-color: rgb(59 130 246 / 0.3);
+  }
+  .ax-badge-pbi {
+    @apply ax-badge;
+    background-color: rgb(167 139 250 / 0.15);
+    color: var(--ax-accent);
+    border-color: rgb(167 139 250 / 0.35);
+  }
+  .ax-stat-value-ok { color: var(--ax-green); }
+  .ax-stat-value-warn { color: var(--ax-amber); }
+  .ax-stat-value-danger { color: var(--ax-red); }
+}

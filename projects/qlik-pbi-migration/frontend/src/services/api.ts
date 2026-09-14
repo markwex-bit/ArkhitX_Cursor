@@ -2,9 +2,11 @@ import axios from 'axios'
 import type {
   BacklogEntry,
   EligibilitySummary,
+  IntakeSummary,
+  MetadataCoverageReport,
   ParityRow,
   QlikDispositionResult,
-  QlikQualityResult,
+  QlikQualificationSummary,
   SignOffRecord,
   SignOffRequest,
 } from '../types'
@@ -14,13 +16,20 @@ const api = axios.create({
 })
 
 export const getMeta = () =>
-  api.get<{ data_source: 'sample' | 'live' }>('/meta').then((r) => r.data)
+  api
+    .get<{ data_source: 'sample' | 'live'; llm_analysis_ready: boolean }>('/meta')
+    .then((r) => r.data)
+
+export const getIntake = () => api.get<IntakeSummary>('/intake').then((r) => r.data)
+
+export const getMetadataCoverage = () =>
+  api.get<MetadataCoverageReport[]>('/metadata-coverage').then((r) => r.data)
 
 export const getEligibility = () =>
   api.get<EligibilitySummary>('/eligibility').then((r) => r.data)
 
-export const getQlikQuality = () =>
-  api.get<QlikQualityResult[]>('/quality/qlik').then((r) => r.data)
+export const getQlikQualification = () =>
+  api.get<QlikQualificationSummary>('/qualification/qlik').then((r) => r.data)
 
 export const getParityMatrix = () =>
   api.get<ParityRow[]>('/quality/parity').then((r) => r.data)
@@ -29,7 +38,7 @@ export const getDispositions = () =>
   api.get<QlikDispositionResult[]>('/dispositions').then((r) => r.data)
 
 export const refreshDispositions = () =>
-  api.post<{ status: string; qlik_apps: number }>('/dispositions/refresh').then((r) => r.data)
+  api.post<QlikDispositionResult[]>('/dispositions/refresh').then((r) => r.data)
 
 export const postSignOff = (request: SignOffRequest) =>
   api.post<SignOffRecord>('/signoff', request).then((r) => r.data)
