@@ -8,7 +8,9 @@ interface Project {
   current_phase: number
   phase_name: string
   phase_status: string
-  pain_points: Record<string, unknown>
+  architecture_tier: 'lightweight' | 'full' | null
+  architecture_review_mode: 'self' | 'stakeholder' | null
+  pain_points: Record<string, string>
   signals: Record<string, unknown>
   ontology_schema: Record<string, unknown>
   field_mappings: Record<string, unknown>

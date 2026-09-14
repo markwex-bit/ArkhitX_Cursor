@@ -41,7 +41,7 @@ ORDER BY created_at DESC;
    ]
    ```
 
-   Run each ask through the agent's real `_grounding_query()` + `ArkhitXClient.get_grounding_context()` path and assert `expected_node_ids` is a subset of the returned node ids. Failures here mean the chosen `retrieval_strategy` (graph/structured/vector/hybrid) or its parameters are wrong for that ask — revisit the Step 0 choice in `04-AGENT-BUILD.md` before tuning prompts.
+   Run each ask through the agent's real `_grounding_query()` + `ArkhitXClient.get_grounding_context()` path and assert `expected_node_ids` is a subset of the returned node ids. Failures here mean the chosen `retrieval_strategy` (graph/structured/vector/hybrid) or its parameters are wrong for that ask — revisit the Step 0 choice in [03-WIRE-GOVERNANCE.md](03-WIRE-GOVERNANCE.md) before tuning prompts.
 
 6. **Document failures** — If scores are low, check empty graph matches, wrong `entity_type`/`retrieval_strategy` in `_grounding_query`, or responses that omit node identifiers (default scoring uses names/ids in text — see `_compute_grounding_score` in `sdk/arkhitx/governed_agent.py`).
 
@@ -52,4 +52,4 @@ ORDER BY created_at DESC;
 
 ## Next phase
 
-Proceed to `06-DELIVERY-PACKAGE.md` for production handoff.
+Proceed to [05-SHIP.md](05-SHIP.md) for production handoff.

@@ -67,4 +67,4 @@ class MappingAgent(GovernedBaseAgent):
 
 ## Next phase
 
-Proceed to `05-SOLUTION-VALIDATION.md` to validate grounding end-to-end.
+Proceed to [04-VALIDATE-GROUNDING.md](04-VALIDATE-GROUNDING.md) to validate grounding end-to-end.

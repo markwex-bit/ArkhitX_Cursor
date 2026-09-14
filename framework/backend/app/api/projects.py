@@ -30,15 +30,23 @@ class GateDecision(BaseModel):
     reviewer: str = "consultant"
     notes: str | None = None
     modifications: dict | None = None
+    # Open issues to track even on approval (e.g. "approved with conditions").
+    # Approval still advances the phase — conditions are logged for follow-up,
+    # never silently dropped.
+    conditions: list[str] | None = None
 
 
+# Phase -1 = Architecture & Design (Phase A) — the pre-build gate. See
+# app/api/architecture.py for document/ADR management within this phase.
+# Phases -1 through 5 mirror the Playbook (see framework/docs/README.md).
+# Filename prefix matches phase number (0A, 00–05).
 PHASE_NAMES = {
-    0: "kickoff", 1: "ontology_design", 2: "data_mapping",
-    3: "graph_population", 4: "agent_build", 5: "solution_validation", 6: "delivery",
+    -1: "architecture", 0: "kickoff", 1: "ontology_design",
+    2: "graph_population", 3: "agent_build", 4: "solution_validation", 5: "delivery",
 }
 GATE_NAMES = {
-    0: "signal_gate", 1: "schema_gate", 2: "mapping_gate",
-    3: "data_gate", 4: "agent_gate", 5: "validation_gate",
+    -1: "architecture_gate", 0: "signal_gate", 1: "schema_gate",
+    2: "mapping_gate", 3: "agent_gate", 4: "validation_gate",
 }
 
 
@@ -89,11 +97,14 @@ def decide_gate(project_id: str, gate_name: str, decision: GateDecision, db: Ses
     if expected_gate and gate_name != expected_gate:
         raise HTTPException(400, f"Expected gate '{expected_gate}' for phase {project.current_phase}")
 
+    approved_with_conditions = bool(decision.approved and decision.conditions)
     action = f"gate_{'approved' if decision.approved else 'rejected'}:{gate_name}"
     log_audit(db, project_id=project_id, actor=decision.reviewer,
               action=action, context={
                   "notes": decision.notes,
                   "modifications": decision.modifications,
+                  "conditions": decision.conditions,
+                  "approved_with_conditions": approved_with_conditions,
               })
 
     event = PipelineEvent(
@@ -104,11 +115,11 @@ def decide_gate(project_id: str, gate_name: str, decision: GateDecision, db: Ses
     )
     db.add(event)
 
-    if decision.approved and project.current_phase < 6:
+    if decision.approved and project.current_phase < 5:
         old_phase = project.current_phase
         project.current_phase += 1
         project.phase_status = "in_progress"
-        if project.current_phase == 6:
+        if project.current_phase == 5:
             project.phase_status = "completed"
         log_audit(db, project_id=project_id, actor="system",
                   action=f"phase_advanced:{old_phase}:{project.current_phase}")
@@ -117,6 +128,8 @@ def decide_gate(project_id: str, gate_name: str, decision: GateDecision, db: Ses
     db.refresh(project)
     return {
         "status": "approved" if decision.approved else "rejected",
+        "approved_with_conditions": approved_with_conditions,
+        "conditions": decision.conditions or [],
         "current_phase": project.current_phase,
         "phase_name": PHASE_NAMES.get(project.current_phase, "unknown"),
     }
@@ -141,6 +154,8 @@ def _serialize(project: Project) -> dict:
         "current_phase": project.current_phase,
         "phase_name": PHASE_NAMES.get(project.current_phase, "unknown"),
         "phase_status": project.phase_status,
+        "architecture_tier": project.architecture_tier,
+        "architecture_review_mode": project.architecture_review_mode,
         "pain_points": project.pain_points or {},
         "signals": project.signals or {},
         "ontology_schema": project.ontology_schema or {},

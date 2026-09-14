@@ -2,7 +2,7 @@
 
 ## Primary doc
 
-Core Phase 2 steps live in **`02-DATA-MAPPING.md`** (populate Neo4j, use `GraphPopulator` and `ArkhitXClient`). Use this file for non-trivial import strategy.
+Core Phase 2 steps live in **[02-POPULATE-GRAPH.md](02-POPULATE-GRAPH.md)** (populate Neo4j, use `GraphPopulator` and `ArkhitXClient`). Use this file for non-trivial import strategy.
 
 ## Idempotent loads
 
@@ -49,4 +49,4 @@ Fix empty labels or zero edge counts before Phase 3 wiring.
 
 ## Next phase
 
-Return to the main flow: `04-AGENT-BUILD.md` (wire governance).
+Return to the main flow: [03-WIRE-GOVERNANCE.md](03-WIRE-GOVERNANCE.md).

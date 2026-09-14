@@ -21,7 +21,7 @@ made that must carry forward once Phase 3 wiring actually begins — do not lose
   `context`/`result` payload to carry full, non-truncated I/O for these two agents specifically
   once wired).
 - **A golden-query grounding eval is required at Phase 4**, not just a grounding-score threshold
-  — see `framework/docs/05-SOLUTION-VALIDATION.md`. Build `docs/golden_queries.json` for this
+  — see `framework/docs/04-VALIDATE-GROUNDING.md`. Build `docs/golden_queries.json` for this
   project before validating.
 - **HITL confidence-threshold pattern** — this project's Stage 4 sign-off gate (`services/signoff.py`)
   is the reference implementation the framework's `ARCHITECTURE-PRINCIPLES.md` cross-cutting

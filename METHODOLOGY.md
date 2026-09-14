@@ -69,10 +69,11 @@ for the database schema.
 
 ---
 
-## The Six Phases
+## The Phases
 
 | Phase | Name | What Happens | Dashboard auto-tracks? |
 |-------|------|--------------|------------------------|
+| **A** | Architecture & Design | Approve architecture docs and ADRs before any code. | Yes (Projects tab) |
 | **0** | Build | Build POC/MVP with Cursor. No ArkhitX. | Files on disk |
 | **1** | Register | Extract ontology from code. Register in ArkhitX. | Yes |
 | **2** | Populate Graph | Seed Neo4j from `governance/seed_data.json`. | Yes |
@@ -80,8 +81,9 @@ for the database schema.
 | **4** | Validate Grounding | End-to-end QA. Confirm audit + grounding scores. | Manual |
 | **5** | Ship | Verify dual mode. Package handoff artifacts. | Manual |
 
-**Phases 0–3** are integration milestones. The dashboard auto-detects progress
-through Phase 3 based on registration, graph seeding, and grounding records.
+**Phase A and Phases 0–3** are tracked on the Projects tab. The Applications tab
+auto-detects integration progress through Phase 3 based on registration, graph
+seeding, and grounding records.
 
 **Phases 4–5** are delivery milestones — consultant sign-off and client handoff.
 They do not add new wiring; they verify what Phases 1–3 produced.
@@ -90,13 +92,14 @@ They do not add new wiring; they verify what Phases 1–3 produced.
 
 | Phase | Instruction doc |
 |-------|-----------------|
-| 0 — Build | [framework/docs/00-PROJECT-KICKOFF.md](framework/docs/00-PROJECT-KICKOFF.md) |
-| 1 — Register | [framework/docs/01-ONTOLOGY-DESIGN.md](framework/docs/01-ONTOLOGY-DESIGN.md) |
-| 2 — Populate Graph | [framework/docs/02-DATA-MAPPING.md](framework/docs/02-DATA-MAPPING.md) |
-| 2 — Advanced patterns | [framework/docs/03-GRAPH-POPULATION.md](framework/docs/03-GRAPH-POPULATION.md) |
-| 3 — Wire Governance | [framework/docs/04-AGENT-BUILD.md](framework/docs/04-AGENT-BUILD.md) |
-| 4 — Validate | [framework/docs/05-SOLUTION-VALIDATION.md](framework/docs/05-SOLUTION-VALIDATION.md) |
-| 5 — Ship | [framework/docs/06-DELIVERY-PACKAGE.md](framework/docs/06-DELIVERY-PACKAGE.md) |
+| A — Architecture & Design | [framework/docs/0A-ARCHITECTURE-AND-DESIGN.md](framework/docs/0A-ARCHITECTURE-AND-DESIGN.md) |
+| 0 — Build | [framework/docs/00-BUILD-SOLUTION.md](framework/docs/00-BUILD-SOLUTION.md) |
+| 1 — Register | [framework/docs/01-REGISTER-ONTOLOGY.md](framework/docs/01-REGISTER-ONTOLOGY.md) |
+| 2 — Populate Graph | [framework/docs/02-POPULATE-GRAPH.md](framework/docs/02-POPULATE-GRAPH.md) |
+| 2 — Advanced patterns | [framework/docs/02-POPULATE-GRAPH-ADVANCED.md](framework/docs/02-POPULATE-GRAPH-ADVANCED.md) |
+| 3 — Wire Governance | [framework/docs/03-WIRE-GOVERNANCE.md](framework/docs/03-WIRE-GOVERNANCE.md) |
+| 4 — Validate | [framework/docs/04-VALIDATE-GROUNDING.md](framework/docs/04-VALIDATE-GROUNDING.md) |
+| 5 — Ship | [framework/docs/05-SHIP.md](framework/docs/05-SHIP.md) |
 
 Each project also keeps phase notes in `projects/{slug}/docs/PHASE-*.md`.
 
@@ -172,7 +175,7 @@ After Phase 0 (solution works standalone):
    pip install -e framework/sdk
    ```
    Make agents extend `GovernedBaseAgent`. Override `_grounding_query()` where
-   KG context helps. See [framework/docs/04-AGENT-BUILD.md](framework/docs/04-AGENT-BUILD.md).
+   KG context helps. See [framework/docs/03-WIRE-GOVERNANCE.md](framework/docs/03-WIRE-GOVERNANCE.md).
 
 6. **Environment variables** (Phase 3+):
    ```bash
@@ -185,8 +188,8 @@ After Phase 0 (solution works standalone):
    ```
 
 7. **Phases 4–5** — Follow validation and delivery checklists in
-   [05-SOLUTION-VALIDATION.md](framework/docs/05-SOLUTION-VALIDATION.md) and
-   [06-DELIVERY-PACKAGE.md](framework/docs/06-DELIVERY-PACKAGE.md).
+   [04-VALIDATE-GROUNDING.md](framework/docs/04-VALIDATE-GROUNDING.md) and
+   [05-SHIP.md](framework/docs/05-SHIP.md).
 
 ---
 

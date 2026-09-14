@@ -42,7 +42,7 @@ class GovernedBaseAgent(ABC):
         arkhitx: ArkhitXClient | None = None,
         *,
         anthropic_api_key: str | None = None,
-        model: str = "claude-sonnet-4-20250514",
+        model: str = "claude-sonnet-4-5-20250929",
         max_tokens: int = 4096,
         temperature: float = 0.3,
     ):
@@ -95,7 +95,7 @@ class GovernedBaseAgent(ABC):
         There is deliberately no default strategy — choosing one is a required
         design decision per agent/ask, not an implementation detail. See
         framework/docs/ARCHITECTURE-PRINCIPLES.md for the selection table and
-        framework/docs/04-AGENT-BUILD.md for wiring steps. Omitting
+        framework/docs/03-WIRE-GOVERNANCE.md for wiring steps. Omitting
         "retrieval_strategy" raises ValueError in call_llm().
         """
         return None
@@ -134,8 +134,17 @@ class GovernedBaseAgent(ABC):
         self,
         user_message: str,
         max_tokens: int | None = None,
+        system_prompt: str | None = None,
     ) -> str:
-        """Call Claude with governance wrapping (audit + grounding)."""
+        """
+        Call Claude with governance wrapping (audit + grounding).
+
+        system_prompt: optional per-call override of get_system_prompt().
+        Use for agents that need a different system prompt depending on the
+        call (e.g. a "mode" switch), while still keeping the DB-managed
+        prompt (agent_prompts table) as the default for normal calls that
+        don't pass this.
+        """
         start_time = time.time()
         graph_context = None
 
@@ -172,7 +181,7 @@ class GovernedBaseAgent(ABC):
             model=self.model,
             max_tokens=max_tokens or self.max_tokens,
             temperature=self.temperature,
-            system=self.get_system_prompt(),
+            system=system_prompt or self.get_system_prompt(),
             messages=[{"role": "user", "content": user_message}],
         )
         response_text = response.content[0].text

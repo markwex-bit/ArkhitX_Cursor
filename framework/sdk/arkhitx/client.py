@@ -154,7 +154,7 @@ class ArkhitXClient:
         system_prompt: str,
         *,
         description: str | None = None,
-        model: str = "claude-sonnet-4-20250514",
+        model: str = "claude-sonnet-4-5-20250929",
         max_tokens: int = 4096,
         temperature: float = 0.3,
     ) -> None:
@@ -317,7 +317,7 @@ class ArkhitXClient:
         """
         Strategy: 'vector'. Requires a Neo4j native vector index already
         created on the target node label/property (see
-        framework/docs/03-GRAPH-POPULATION.md) and a precomputed query
+        framework/docs/02-POPULATE-GRAPH-ADVANCED.md) and a precomputed query
         embedding — the SDK does not generate embeddings itself, since the
         embedding model choice is a project-level decision.
         """

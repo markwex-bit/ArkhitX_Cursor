@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { projectsApi } from '../lib/api'
-import { X, CheckCircle, XCircle } from 'lucide-react'
+import { X, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
 
 interface Props {
   projectId: string
@@ -8,19 +8,31 @@ interface Props {
   phaseName: string
   onClose: () => void
   onDecided: (result: { approved: boolean; current_phase: number }) => void
+  /** Optional warning shown above the decision (e.g. "3 documents not started yet"). */
+  readinessWarning?: string
+  /** Show the "open issues / conditions" field for an "approve with conditions" outcome. */
+  allowConditions?: boolean
 }
 
-export default function HITLGateOverlay({ projectId, gateName, phaseName, onClose, onDecided }: Props) {
+export default function HITLGateOverlay({
+  projectId, gateName, phaseName, onClose, onDecided, readinessWarning, allowConditions,
+}: Props) {
   const [notes, setNotes] = useState('')
+  const [conditionsText, setConditionsText] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleDecision = async (approved: boolean) => {
     setLoading(true)
     try {
+      const conditions = conditionsText
+        .split('\n')
+        .map((c) => c.trim())
+        .filter(Boolean)
       const { data } = await projectsApi.decideGate(projectId, gateName, {
         approved,
         reviewer: 'consultant',
         notes: notes || undefined,
+        conditions: approved && conditions.length ? conditions : undefined,
       })
       onDecided({ approved: data.status === 'approved', current_phase: data.current_phase })
     } finally {
@@ -43,6 +55,13 @@ export default function HITLGateOverlay({ projectId, gateName, phaseName, onClos
           phase, or reject to request changes.
         </p>
 
+        {readinessWarning && (
+          <div className="mb-4 flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+            <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <span>{readinessWarning}</span>
+          </div>
+        )}
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Notes (optional)
@@ -55,6 +74,25 @@ export default function HITLGateOverlay({ projectId, gateName, phaseName, onClos
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
           />
         </div>
+
+        {allowConditions && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Open issues / conditions (optional — one per line)
+            </label>
+            <textarea
+              value={conditionsText}
+              onChange={(e) => setConditionsText(e.target.value)}
+              rows={2}
+              placeholder="e.g. Confirm data retention policy with legal before Phase 0"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Listing conditions still approves and advances the phase — it just keeps the open
+              issues on record ("approved with conditions") instead of dropping them.
+            </p>
+          </div>
+        )}
 
         <div className="flex gap-3 justify-end">
           <button

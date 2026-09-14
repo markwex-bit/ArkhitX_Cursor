@@ -82,7 +82,7 @@ and customizes it for each client engagement by following the phase instruction 
 
 ## How Cursor Uses the Template
 
-When you tell Cursor to follow a phase file (e.g., "Follow `docs/04-AGENT-BUILD.md`"),
+When you tell Cursor to follow a phase file (e.g., "Follow `docs/03-WIRE-GOVERNANCE.md`"),
 Cursor will:
 
 1. Read the phase file for instructions

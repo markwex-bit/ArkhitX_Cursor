@@ -121,12 +121,13 @@ Each project's `docs/` folder contains project-specific phase notes.
 
 Start with **[METHODOLOGY.md](METHODOLOGY.md)**. Phase deep-dives live in `framework/docs/`:
 
-- `00-PROJECT-KICKOFF.md` — Phase 0: Build the solution
-- `01-ONTOLOGY-DESIGN.md` — Phase 1: Register and extract ontology
-- `02-DATA-MAPPING.md` — Phase 2: Populate the graph
-- `04-AGENT-BUILD.md` — Phase 3: Wire governance
-- `05-SOLUTION-VALIDATION.md` — Phase 4: Validate grounding
-- `06-DELIVERY-PACKAGE.md` — Phase 5: Ship
+- `0A-ARCHITECTURE-AND-DESIGN.md` — Phase A: Architecture & Design (pre-build)
+- `00-BUILD-SOLUTION.md` — Phase 0: Build the solution
+- `01-REGISTER-ONTOLOGY.md` — Phase 1: Register and extract ontology
+- `02-POPULATE-GRAPH.md` — Phase 2: Populate the graph
+- `03-WIRE-GOVERNANCE.md` — Phase 3: Wire governance
+- `04-VALIDATE-GROUNDING.md` — Phase 4: Validate grounding
+- `05-SHIP.md` — Phase 5: Ship
 
 Do not use documents in `framework/docs/archive/` — they describe a superseded model.
 

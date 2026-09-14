@@ -63,4 +63,4 @@ populator.create_constraints()  # Neo4j constraints from unique properties
 
 ## Next phase
 
-Proceed to `02-DATA-MAPPING.md` to populate the graph with domain data.
+Proceed to [02-POPULATE-GRAPH.md](02-POPULATE-GRAPH.md) to populate the graph with domain data.

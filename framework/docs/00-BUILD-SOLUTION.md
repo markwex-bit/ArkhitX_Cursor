@@ -4,6 +4,11 @@
 
 Deliver a working POC or MVP **without** ArkhitX. The code is the source of truth for the domain model. Governance attaches in later phases.
 
+## Prerequisites
+
+- Phase A complete: architecture documents approved and `architecture_gate` passed.
+  See [0A-ARCHITECTURE-AND-DESIGN.md](0A-ARCHITECTURE-AND-DESIGN.md).
+
 ## Scope
 
 - Use Cursor (or your usual stack) to implement the solution end-to-end: APIs, agents, UI, file handling—whatever the client needs.
@@ -18,8 +23,8 @@ Deliver a working POC or MVP **without** ArkhitX. The code is the source of trut
 
 ## Handoff line
 
-**Build until it works, then return for Phase 1** (`01-ONTOLOGY-DESIGN.md`). Do not block the POC on registration, graph design, or governance.
+**Build until it works, then return for Phase 1** (`01-REGISTER-ONTOLOGY.md`). Do not block the POC on registration, graph design, or governance.
 
 ## Next phase
 
-After the solution is demonstrably working, proceed to `01-ONTOLOGY-DESIGN.md` to register the project in ArkhitX and extract the ontology from this codebase.
+After the solution is demonstrably working, proceed to [01-REGISTER-ONTOLOGY.md](01-REGISTER-ONTOLOGY.md) to register the project in ArkhitX and extract the ontology from this codebase.

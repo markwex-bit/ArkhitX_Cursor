@@ -81,7 +81,7 @@ because Neo4j is the knowledge store.
 | Structural candidates ranked by meaning | "Narrow by relationship, rank by similarity" | `hybrid` | graph fields + `query_embedding` |
 
 Do this classification explicitly as part of Phase 3 wiring (see
-`04-AGENT-BUILD.md`, "Step 0") and document the choice + rationale per agent
+[03-WIRE-GOVERNANCE.md](03-WIRE-GOVERNANCE.md), "Step 0") and document the choice + rationale per agent
 in the project's `docs/PHASE-3-GOVERNANCE.md`.
 
 **Implementation guidance for Cursor:**

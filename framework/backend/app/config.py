@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     neo4j_password: str = os.getenv("NEO4J_PASSWORD", "password")
 
     anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY", "")
-    claude_model: str = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-20250514")
+    claude_model: str = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5-20250929")
     claude_max_tokens: int = int(os.getenv("CLAUDE_MAX_TOKENS", "4096"))
     claude_temperature: float = float(os.getenv("CLAUDE_TEMPERATURE", "0.3"))
 

@@ -10,6 +10,7 @@ from app.api.governance import router as governance_router
 from app.api.upload import router as upload_router
 from app.api.applications import router as applications_router
 from app.api.agents import router as agents_router
+from app.api.architecture import router as architecture_router
 
 
 @asynccontextmanager
@@ -39,6 +40,7 @@ app.include_router(governance_router, prefix="/api/governance", tags=["governanc
 app.include_router(upload_router, prefix="/api/upload", tags=["upload"])
 app.include_router(applications_router, prefix="/api/applications", tags=["applications"])
 app.include_router(agents_router, prefix="/api/agents", tags=["agents"])
+app.include_router(architecture_router, prefix="/api/projects", tags=["architecture"])
 
 
 @app.get("/health")

@@ -1,3 +1,5 @@
+name: ArkhitX-Dashboard
+
 ##############################################################################
 # ArkhitX Infrastructure — Shared Services
 #
@@ -106,4 +108,8 @@ services:
 
 volumes:
   pgdata:
+    external: true
+    name: infrastructure_pgdata
   neo4jdata:
+    external: true
+    name: infrastructure_neo4jdata

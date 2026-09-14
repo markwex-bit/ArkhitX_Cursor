@@ -38,13 +38,39 @@ export const projectsApi = {
   delete: (id: string) => api.delete(`/projects/${id}`),
   decideGate: (projectId: string, gateName: string, decision: {
     approved: boolean; reviewer?: string; notes?: string; modifications?: Record<string, unknown>
+    conditions?: string[]
   }) => api.post(`/projects/${projectId}/gates/${gateName}/decide`, decision),
+}
+
+export const architectureApi = {
+  getCatalog: (projectId: string) =>
+    api.get(`/projects/${projectId}/architecture/catalog`),
+  setTier: (projectId: string, tier: 'lightweight' | 'full', reviewMode: 'self' | 'stakeholder') =>
+    api.post(`/projects/${projectId}/architecture/tier`, { tier, review_mode: reviewMode }),
+  listDocuments: (projectId: string) =>
+    api.get(`/projects/${projectId}/architecture/documents`),
+  getDocument: (projectId: string, docKey: string) =>
+    api.get(`/projects/${projectId}/architecture/documents/${docKey}`),
+  updateDocument: (projectId: string, docKey: string, data: { content?: string; status?: string }) =>
+    api.patch(`/projects/${projectId}/architecture/documents/${docKey}`, data),
+  draftDocument: (projectId: string, docKey: string, regenerate = false) =>
+    api.post(`/projects/${projectId}/architecture/documents/${docKey}/draft`, { regenerate }),
+  listDecisions: (projectId: string) =>
+    api.get(`/projects/${projectId}/architecture/decisions`),
+  createDecision: (projectId: string, data: Record<string, unknown>) =>
+    api.post(`/projects/${projectId}/architecture/decisions`, data),
+  updateDecision: (projectId: string, decisionId: string, data: Record<string, unknown>) =>
+    api.patch(`/projects/${projectId}/architecture/decisions/${decisionId}`, data),
+  deleteDecision: (projectId: string, decisionId: string) =>
+    api.delete(`/projects/${projectId}/architecture/decisions/${decisionId}`),
+  readiness: (projectId: string) =>
+    api.get(`/projects/${projectId}/architecture/readiness`),
 }
 
 export const governanceApi = {
   auditLogs: (params?: { project_id?: string; action?: string; limit?: number }) =>
     api.get('/governance/audit-logs', { params }),
-  groundingRecords: (params?: { project_id?: string; agent_name?: string }) =>
+  groundingRecords: (params?: { project_id?: string; agent_name?: string; limit?: number }) =>
     api.get('/governance/grounding', { params }),
   groundingSummary: (projectId: string) =>
     api.get(`/governance/grounding/summary/${projectId}`),

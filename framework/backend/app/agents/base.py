@@ -51,5 +51,11 @@ class ArkhitXAgent(GovernedBaseAgent):
         super().__init__(arkhitx=client)
 
     def _grounding_query(self, user_message: str) -> dict | None:
-        """All ArkhitX agents ground against the GovernanceRule knowledge graph."""
-        return {"entity_type": "GovernanceRule"}
+        """
+        All ArkhitX agents ground against the GovernanceRule knowledge graph.
+
+        This is a flat lookup with no relationship traversal needed, so the
+        retrieval strategy is "structured" (exact-match, depth=0) — see
+        framework/docs/ARCHITECTURE-PRINCIPLES.md for the selection table.
+        """
+        return {"entity_type": "GovernanceRule", "retrieval_strategy": "structured"}

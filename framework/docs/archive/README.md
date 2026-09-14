@@ -29,7 +29,7 @@ That model contradicts how ArkhitX works today.
 | File | Superseded by |
 |------|---------------|
 | `STARTER-TEMPLATE-GUIDE.md` | [ARCHITECTURE-DECISIONS.md](../ARCHITECTURE-DECISIONS.md), [METHODOLOGY.md](../../METHODOLOGY.md) |
-| `AGENT-DESIGN-PATTERNS.md` | [04-AGENT-BUILD.md](../04-AGENT-BUILD.md), SDK `GovernedBaseAgent` |
+| `AGENT-DESIGN-PATTERNS.md` | [03-WIRE-GOVERNANCE.md](../03-WIRE-GOVERNANCE.md), SDK `GovernedBaseAgent` |
 | `HITL-GATE-PATTERNS.md` | Phase Gate Validator agent, dashboard auto-detection (Phases 0–3) |
 
 ---
@@ -40,7 +40,7 @@ That model contradicts how ArkhitX works today.
 |------------|---------|
 | [METHODOLOGY.md](../../METHODOLOGY.md) | Canonical methodology |
 | [framework/docs/README.md](../README.md) | Index of active docs |
-| [00-PROJECT-KICKOFF.md](../00-PROJECT-KICKOFF.md) through [06-DELIVERY-PACKAGE.md](../06-DELIVERY-PACKAGE.md) | Phase instructions |
+| [0A-ARCHITECTURE-AND-DESIGN.md](../0A-ARCHITECTURE-AND-DESIGN.md) through [05-SHIP.md](../05-SHIP.md) | Phase instructions |
 
 ---
 

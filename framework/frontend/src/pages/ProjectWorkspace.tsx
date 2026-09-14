@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { projectsApi } from '../lib/api'
 import { useProjectStore } from '../lib/stores/projectStore'
-import { PHASE_NAMES, GATE_NAMES } from '../types'
+import { PHASE_NAMES, PHASE_ORDER, GATE_NAMES, PHASE_DOC_FILES } from '../types'
 import PainPointForm from '../components/PainPointForm'
 import SignalReview from '../components/SignalReview'
 import HITLGateOverlay from '../components/HITLGateOverlay'
+import ArchitectureWorkspace from '../components/architecture/ArchitectureWorkspace'
 import { CheckCircle, Circle, ArrowRight } from 'lucide-react'
 
 export default function ProjectWorkspace() {
@@ -13,6 +14,8 @@ export default function ProjectWorkspace() {
   const { currentProject, setCurrentProject } = useProjectStore()
   const [showGate, setShowGate] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [archNotStarted, setArchNotStarted] = useState(0)
+  const [archReady, setArchReady] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -40,8 +43,8 @@ export default function ProjectWorkspace() {
       {/* Phase Progress Bar */}
       <div className="mb-8 p-4 bg-white rounded-xl border border-gray-200">
         <div className="flex items-center justify-between">
-          {Object.entries(PHASE_NAMES).map(([phaseNum, phaseName], idx) => {
-            const num = parseInt(phaseNum)
+          {PHASE_ORDER.map((num, idx) => {
+            const phaseName = PHASE_NAMES[num]
             const isComplete = num < phase
             const isCurrent = num === phase
             return (
@@ -54,7 +57,7 @@ export default function ProjectWorkspace() {
                   {isComplete ? <CheckCircle className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
                   {phaseName}
                 </div>
-                {idx < 6 && <ArrowRight className="w-4 h-4 text-gray-300 mx-1" />}
+                {idx < PHASE_ORDER.length - 1 && <ArrowRight className="w-4 h-4 text-gray-300 mx-1" />}
               </div>
             )
           })}
@@ -82,9 +85,29 @@ export default function ProjectWorkspace() {
           )}
         </div>
 
+        {/* Phase A (-1): Architecture & Design — pre-build gate */}
+        {phase === -1 && (
+          <div className="space-y-6">
+            <ArchitectureWorkspace
+              projectId={currentProject.id}
+              tier={currentProject.architecture_tier}
+              onReadinessChange={(ready, outstandingCount) => {
+                setArchReady(ready)
+                setArchNotStarted(outstandingCount)
+              }}
+            />
+            <p className="text-sm text-gray-400 text-center">
+              Tell Cursor: "Follow <code className="bg-gray-100 px-1 rounded">docs/{PHASE_DOC_FILES[-1]}</code>"
+            </p>
+          </div>
+        )}
+
         {/* Phase 0: Pain Point Intake */}
         {phase === 0 && (
           <div className="space-y-6">
+            <p className="text-sm text-gray-400 text-center">
+              Tell Cursor: "Follow <code className="bg-gray-100 px-1 rounded">docs/{PHASE_DOC_FILES[0]}</code>"
+            </p>
             <PainPointForm
               projectId={currentProject.id}
               painPoints={currentProject.pain_points}
@@ -98,12 +121,12 @@ export default function ProjectWorkspace() {
           </div>
         )}
 
-        {/* Phase 1-6: Placeholder content for Cursor to fill */}
-        {phase >= 1 && phase <= 6 && (
+        {/* Phase 1-5: Placeholder content for Cursor to fill */}
+        {phase >= 1 && phase <= 5 && (
           <div className="text-center py-12 text-gray-400">
             <p className="text-lg">Phase {phase}: {PHASE_NAMES[phase]}</p>
             <p className="text-sm mt-2">
-              Tell Cursor: "Follow <code className="bg-gray-100 px-1 rounded">docs/0{phase}-{PHASE_NAMES[phase].toLowerCase().replace(/ /g, '-')}.md</code>"
+              Tell Cursor: "Follow <code className="bg-gray-100 px-1 rounded">docs/{PHASE_DOC_FILES[phase]}</code>"
             </p>
           </div>
         )}
@@ -115,6 +138,13 @@ export default function ProjectWorkspace() {
           projectId={currentProject.id}
           gateName={GATE_NAMES[phase]}
           phaseName={PHASE_NAMES[phase]}
+          allowConditions={phase === -1}
+          readinessWarning={
+            phase === -1 && !archReady
+              ? `${archNotStarted} document${archNotStarted === 1 ? '' : 's'} not yet approved. ` +
+                `Approving now still advances to Phase 0 — make sure that's intentional.`
+              : undefined
+          }
           onClose={() => setShowGate(false)}
           onDecided={(result) => {
             setShowGate(false)

@@ -18,7 +18,7 @@ Deliver a **production-ready** solution: full governance when ArkhitX is configu
    - Sample SQL or dashboard queries for `audit_logs` and `grounding_records`
    - Environment variable checklist (`ARKHITX_DATABASE_URL`, `ARKHITX_PROJECT_ID`, `ARKHITX_NEO4J_*`, `ANTHROPIC_API_KEY`)
 
-3. **Harden operations** — Document how to rotate keys, re-import graph data (Phase 2 patterns in `02-DATA-MAPPING.md`), and triage low grounding scores.
+3. **Harden operations** — Document how to rotate keys, re-import graph data (Phase 2 patterns in [02-POPULATE-GRAPH.md](02-POPULATE-GRAPH.md)), and triage low grounding scores.
 
 4. **Final checklist**
 
@@ -36,12 +36,13 @@ Deliver a **production-ready** solution: full governance when ArkhitX is configu
 
 | Phase | Doc |
 |-------|-----|
-| 0 Build | `00-PROJECT-KICKOFF.md` |
-| 1 Register + ontology | `01-ONTOLOGY-DESIGN.md` |
-| 2 Populate graph | `02-DATA-MAPPING.md` (+ `03-GRAPH-POPULATION.md` advanced) |
-| 3 Wire governance | `04-AGENT-BUILD.md` |
-| 4 Validate grounding | `05-SOLUTION-VALIDATION.md` |
-| 5 Ship | `06-DELIVERY-PACKAGE.md` |
+| A Architecture & Design | `0A-ARCHITECTURE-AND-DESIGN.md` |
+| 0 Build | `00-BUILD-SOLUTION.md` |
+| 1 Register + ontology | `01-REGISTER-ONTOLOGY.md` |
+| 2 Populate graph | `02-POPULATE-GRAPH.md` (+ `02-POPULATE-GRAPH-ADVANCED.md`) |
+| 3 Wire governance | `03-WIRE-GOVERNANCE.md` |
+| 4 Validate grounding | `04-VALIDATE-GROUNDING.md` |
+| 5 Ship | `05-SHIP.md` |
 
 ## Project complete
 

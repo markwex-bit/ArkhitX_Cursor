@@ -13,7 +13,12 @@ class Project(Base):
     client_id = Column(UUID(as_uuid=True), ForeignKey("clients.id"))
     client_name = Column(String(255), nullable=False)
     description = Column(Text)
-    current_phase = Column(Integer, default=0)
+    # Phase -1 = Architecture & Design (pre-build gate). Phases 0-5 = the
+    # Playbook's canonical build/governance pipeline (Build, Register,
+    # Populate Graph, Wire Governance, Validate Grounding, Ship). -1 is
+    # deliberately not zero so nothing about the existing phase pipeline has
+    # to be renumbered.
+    current_phase = Column(Integer, default=-1)
     phase_status = Column(String(50), default="in_progress")
     pain_points = Column(JSONB, default=dict)
     signals = Column(JSONB, default=dict)
@@ -21,14 +26,31 @@ class Project(Base):
     field_mappings = Column(JSONB, default=dict)
     validation_results = Column(JSONB, default=dict)
     metadata_ = Column("metadata", JSONB, default=dict)
+
+    # Phase A (Architecture) fields
+    architecture_tier = Column(String(20))  # "lightweight" | "full" | null (not yet chosen)
+    architecture_review_mode = Column(String(20))  # "self" | "stakeholder" | null
+    # Raw source material for retrospective ("reverse-engineered") Phase A
+    # reconstructions — e.g. concatenated as-built docs from a project that
+    # was built before Phase A existed. When set, ArchitectureDocumentAgent
+    # grounds drafts in this material instead of drafting prospectively from
+    # bare intake fields. Null/empty for normal forward-looking projects.
+    as_built_notes = Column(Text)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     __table_args__ = (
-        CheckConstraint("current_phase >= 0 AND current_phase <= 6", name="valid_phase"),
+        CheckConstraint("current_phase >= -1 AND current_phase <= 5", name="valid_phase"),
     )
 
     client = relationship("Client", back_populates="projects")
     audit_logs = relationship("AuditLog", back_populates="project", cascade="all, delete-orphan")
     grounding_records = relationship("GroundingRecord", back_populates="project", cascade="all, delete-orphan")
     pipeline_events = relationship("PipelineEvent", back_populates="project", cascade="all, delete-orphan")
+    architecture_documents = relationship(
+        "ArchitectureDocument", back_populates="project", cascade="all, delete-orphan"
+    )
+    architecture_decisions = relationship(
+        "ArchitectureDecision", back_populates="project", cascade="all, delete-orphan"
+    )

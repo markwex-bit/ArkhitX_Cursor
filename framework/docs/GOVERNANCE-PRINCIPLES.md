@@ -242,8 +242,8 @@ Agent prompts are treated as data, not code. They are:
 Integration phases (0–3) cannot be skipped. The **Phase Gate Validator** agent
 checks entry conditions (files on disk, DB rows, Neo4j nodes, audit events). The
 dashboard auto-detects progress through Phase 3. Phases 4–5 (validate, ship) are
-consultant sign-off milestones documented in `05-SOLUTION-VALIDATION.md` and
-`06-DELIVERY-PACKAGE.md`.
+consultant sign-off milestones documented in [04-VALIDATE-GROUNDING.md](04-VALIDATE-GROUNDING.md) and
+[05-SHIP.md](05-SHIP.md).
 
 ### Rule 5: Audit Trail Is Append-Only
 

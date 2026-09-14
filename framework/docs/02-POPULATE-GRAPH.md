@@ -60,8 +60,8 @@ client.write_graph(
 
 ## Advanced patterns
 
-See `03-GRAPH-POPULATION.md` for idempotency, multi-tenant properties, and validation queries.
+See [02-POPULATE-GRAPH-ADVANCED.md](02-POPULATE-GRAPH-ADVANCED.md) for idempotency, multi-tenant properties, and validation queries.
 
 ## Next phase
 
-Proceed to `04-AGENT-BUILD.md` to install the SDK and wire governance into agents.
+Proceed to [03-WIRE-GOVERNANCE.md](03-WIRE-GOVERNANCE.md) to install the SDK and wire governance into agents.

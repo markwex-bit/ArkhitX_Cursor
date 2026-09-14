@@ -9,19 +9,19 @@ the canonical guide. This folder contains phase instruction docs and reference m
 
 | Phase | Name | File |
 |-------|------|------|
-| 0 | Build | [00-PROJECT-KICKOFF.md](00-PROJECT-KICKOFF.md) |
-| 1 | Register + extract ontology | [01-ONTOLOGY-DESIGN.md](01-ONTOLOGY-DESIGN.md) |
-| 2 | Populate graph | [02-DATA-MAPPING.md](02-DATA-MAPPING.md) |
-| 2 | Advanced graph patterns | [03-GRAPH-POPULATION.md](03-GRAPH-POPULATION.md) |
-| 3 | Wire governance | [04-AGENT-BUILD.md](04-AGENT-BUILD.md) |
-| 4 | Validate grounding | [05-SOLUTION-VALIDATION.md](05-SOLUTION-VALIDATION.md) |
-| 5 | Ship | [06-DELIVERY-PACKAGE.md](06-DELIVERY-PACKAGE.md) |
+| A | Architecture & Design | [0A-ARCHITECTURE-AND-DESIGN.md](0A-ARCHITECTURE-AND-DESIGN.md) |
+| 0 | Build | [00-BUILD-SOLUTION.md](00-BUILD-SOLUTION.md) |
+| 1 | Register + extract ontology | [01-REGISTER-ONTOLOGY.md](01-REGISTER-ONTOLOGY.md) |
+| 2 | Populate graph | [02-POPULATE-GRAPH.md](02-POPULATE-GRAPH.md) |
+| 2 | Advanced graph patterns | [02-POPULATE-GRAPH-ADVANCED.md](02-POPULATE-GRAPH-ADVANCED.md) |
+| 3 | Wire governance | [03-WIRE-GOVERNANCE.md](03-WIRE-GOVERNANCE.md) |
+| 4 | Validate grounding | [04-VALIDATE-GROUNDING.md](04-VALIDATE-GROUNDING.md) |
+| 5 | Ship | [05-SHIP.md](05-SHIP.md) |
 
-**Note:** Filenames use legacy numbering (`04-AGENT-BUILD.md` = Phase 3). The phase
-number in each file's title is authoritative.
+Filename prefix matches phase number (`0A` for Architecture, `00`–`05` for Phases 0–5).
 
-**Dashboard tracking:** Phases 0–3 are auto-detected. Phases 4–5 are manual
-consultant sign-off (validation and delivery).
+**Dashboard tracking:** Phase A and Phases 0–3 are tracked on the Projects tab.
+Phases 4–5 are manual consultant sign-off (validation and delivery).
 
 ---
 
