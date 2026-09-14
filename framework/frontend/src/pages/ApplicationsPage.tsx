@@ -24,6 +24,18 @@ interface Application {
 const PHASE_LABELS = ['Build', 'Register', 'Seed', 'Govern'] as const
 const PHASE_ICONS = [Hammer, FileCheck2, Network, ShieldCheck]
 
+function formatAppPorts(app: Application): string | null {
+  const fe = app.ports?.frontend
+  const be = app.ports?.backend
+  if (fe || be) {
+    return `:${fe ?? '—'} / api:${be ?? '—'}`
+  }
+  if (app.slug === 'arkhitx-framework') {
+    return 'ui:8090 / api:8080'
+  }
+  return null
+}
+
 function PhaseStepper({ currentPhase }: { currentPhase: number }) {
   return (
     <div className="flex items-center gap-1">
@@ -88,7 +100,9 @@ export default function ApplicationsPage() {
         )}
 
         <div className="flex flex-col gap-1.5 max-w-5xl">
-          {apps.map((app) => (
+          {apps.map((app) => {
+            const portsLabel = formatAppPorts(app)
+            return (
             <button
               key={app.slug}
               type="button"
@@ -104,11 +118,11 @@ export default function ApplicationsPage() {
                   <p className="text-[10px] text-ax-text-muted truncate mt-0.5">{app.description}</p>
                 </div>
 
-                <div className="hidden sm:block shrink-0 text-[10px] font-mono text-ax-text-muted">
-                  :{app.ports.frontend}
-                  <span className="text-ax-border mx-1">/</span>
-                  api:{app.ports.backend}
-                </div>
+                {portsLabel && (
+                  <div className="hidden sm:block shrink-0 text-[10px] font-mono text-ax-text-muted">
+                    {portsLabel}
+                  </div>
+                )}
 
                 <div className="hidden md:block shrink-0">
                   <PhaseStepper currentPhase={app.current_phase} />
@@ -130,7 +144,7 @@ export default function ApplicationsPage() {
                 <PhaseStepper currentPhase={app.current_phase} />
               </div>
             </button>
-          ))}
+          )})}
         </div>
       </div>
     </div>

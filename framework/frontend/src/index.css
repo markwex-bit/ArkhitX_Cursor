@@ -283,4 +283,34 @@
   .ax-stat-value-ok { color: var(--ax-green); }
   .ax-stat-value-warn { color: var(--ax-amber); }
   .ax-stat-value-danger { color: var(--ax-red); }
+
+  .ax-row-interactive {
+    @apply w-full text-left rounded-lg border border-ax-border bg-ax-bg-2 px-3 py-2.5 transition-colors;
+  }
+  .ax-row-interactive:hover {
+    @apply bg-ax-bg-hover;
+    border-color: var(--ax-border-light);
+  }
+
+  .ax-phase-done {
+    background-color: rgb(34 197 94 / 0.15);
+    color: var(--ax-green);
+    border: 1px solid rgb(34 197 94 / 0.35);
+  }
+  .ax-phase-current {
+    background-color: rgb(102 126 234 / 0.15);
+    color: var(--ax-primary-light);
+    border: 1px solid rgb(102 126 234 / 0.35);
+  }
+  .ax-phase-pending {
+    @apply bg-ax-bg-3 text-ax-text-muted;
+    border: 1px solid var(--ax-border);
+  }
+
+  .ax-table-head {
+    @apply text-left text-ax-text-muted border-b border-ax-border text-xs uppercase tracking-wide;
+  }
+  .ax-table-row {
+    @apply border-b border-ax-border align-top;
+  }
 }
