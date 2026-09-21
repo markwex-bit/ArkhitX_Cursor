@@ -1,0 +1,352 @@
+{
+  "file": "TPC Database - Synthesis Generator.xlsm",
+  "sheets": [
+    {
+      "name": "Home",
+      "state": "visible",
+      "headers_sample": []
+    },
+    {
+      "name": "ExchangeRates",
+      "state": "hidden",
+      "headers_sample": [
+        [
+          "Currency",
+          "Year",
+          "Rate"
+        ],
+        [
+          "EUR",
+          "2026",
+          "1"
+        ],
+        [
+          "EUR",
+          "2025",
+          "1"
+        ],
+        [
+          "EUR",
+          "2027",
+          "1"
+        ],
+        [
+          "EUR",
+          "2028",
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "CarlinesDefinition",
+      "state": "hidden",
+      "headers_sample": [
+        [
+          "Title",
+          "project",
+          "program",
+          "commercial_name",
+          "pcp_team",
+          "plant",
+          "region",
+          "base_currency",
+          "sop_date",
+          "platform",
+          "trim",
+          "powertrain_type",
+          "powertrain_version",
+          "powertrain_detail",
+          "carline_key",
+          "CountryOrRegion0",
+          "brand",
+          "segment",
+          "carline_type",
+          "Reference Person.EMail"
+        ],
+        [
+          "2260 Small-wide Freedom ICE 1.3 GSE T4 flex SA Pernambuco",
+          "2260",
+          "2260",
+          "Toro",
+          "CPSA",
+          "Pernambuco",
+          "SA",
+          "BRL",
+          "Small-wide",
+          "Freedom",
+          "ICE",
+          "1.3 GSE T4 flex",
+          "1.3 GSE T4 flex",
+          "CPSA-2260-2260-SA-Small-wide-Freedom-ICE-1.3 GSE T4 flex",
+          "Brazil",
+          "FIAT",
+          "B-/C Segment",
+          "Pickup",
+          "marcelo.victorasso@stellantis.com"
+        ],
+        [
+          "2260 Small-wide Ranch ICE 2.2 Diesel SA Pernambuco",
+          "2260",
+          "2260",
+          "Toro",
+          "CPSA",
+          "Pernambuco",
+          "SA",
+          "BRL",
+          "Small-wide",
+          "Ranch",
+          "ICE",
+          "2.2 Diesel",
+          "2.2 Diesel",
+          "CPSA-2260-2260-SA-Small-wide-Ranch-ICE-2.2 Diesel",
+          "Brazil",
+          "FIAT",
+          "B-/C Segment",
+          "Pickup",
+          "marcelo.victorasso@stellantis.com"
+        ],
+        [
+          "2810 MLA Endurance ICE 1.3 N4 SA Betim",
+          "2810",
+          "2810",
+          "Strada Single CAB",
+          "CPSA",
+          "Betim",
+          "SA",
+          "BRL",
+          "MLA",
+          "Endurance",
+          "ICE",
+          "1.3 N4",
+          "1.3 N4",
+          "CPSA-2810-2810-SA-MLA-Endurance-ICE-1.3 N4",
+          "Brazil",
+          "FIAT",
+          "B Segment",
+          "Pickup",
+          "wanderson.oliveira@stellantis.com"
+        ],
+        [
+          "2810 MLA Ultra ICE 1.0 T3 CVT flex SA Betim",
+          "2810",
+          "2810",
+          "Strada Single CAB",
+          "CPSA",
+          "Betim",
+          "SA",
+          "BRL",
+          "MLA",
+          "Ultra",
+          "ICE",
+          "1.0 T3 CVT flex",
+          "1.0 T3 CVT flex",
+          "CPSA-2810-2810-SA-MLA-Ultra-ICE-1.0 T3 CVT flex",
+          "Brazil",
+          "FIAT",
+          "B Segment",
+          "Pickup",
+          "wanderson.oliveira@stellantis.com"
+        ]
+      ]
+    },
+    {
+      "name": "StackedCostbooks",
+      "state": "hidden",
+      "headers_sample": [
+        [
+          "Index",
+          "Data Source",
+          "Vehicle Code",
+          "Milestone",
+          "Milestone Date",
+          "VSC",
+          "Matricola",
+          "Poro",
+          "PoRo Name",
+          "Macro System",
+          "Subsystem",
+          "VSC Description",
+          "5th",
+          "Module Code",
+          "Part Description",
+          "Part Number",
+          "Qty",
+          "TPC",
+          "LOT",
+          "CPSA"
+        ],
+        [
+          "1",
+          "R7P JT Big Horn ICE T4 EVO Hurricane NA TNAP (Toledo)_CM_2026-03-03_1923_2025-08",
+          "R7P JT Big Horn ICE T4 EVO Hurricane NA TNAP (Toledo)",
+          "CM",
+          "2025-08-25 00:00:00",
+          "26200400",
+          "NON-PORO",
+          "N/A",
+          "CHASSIS",
+          "2FRE",
+          "VEHICLE OPER GEARSHIFT MECHANISMS - AUTOMATIC TRANSMISSION",
+          "Platform",
+          "",
+          "HANDLE ASSY MANUAL PARK RELEASE NONE",
+          "68282471AD",
+          "1",
+          "5.78"
+        ],
+        [
+          "3",
+          "R7P JT Big Horn ICE T4 EVO Hurricane NA TNAP (Toledo)_CM_2026-03-03_1923_2025-08",
+          "R7P JT Big Horn ICE T4 EVO Hurricane NA TNAP (Toledo)",
+          "CM",
+          "2025-08-25 00:00:00",
+          "8102800",
+          "PORO 11",
+          "Exterior Trim",
+          "BODY",
+          "3FIP",
+          "WEATHERSTRIP WEATHERSTRIP  - REAR DOOR RT",
+          "Top Hat",
+          "",
+          "SEAL RR DOOR GLASS RUN RT RT",
+          "68285724AF",
+          "1",
+          "8.7709"
+        ],
+        [
+          "4",
+          "R7P JT Big Horn ICE T4 EVO Hurricane NA TNAP (Toledo)_CM_2026-03-03_1923_2025-08",
+          "R7P JT Big Horn ICE T4 EVO Hurricane NA TNAP (Toledo)",
+          "CM",
+          "2025-08-25 00:00:00",
+          "8082800",
+          "PORO 11",
+          "Exterior Trim",
+          "BODY",
+          "3FIP",
+          "WEATHERSTRIP WEATHERSTRIP  - REAR DOOR LT",
+          "Top Hat",
+          "",
+          "WEATHERSTRIP RR DOOR BELT OTR LT LH",
+          "68285877AE",
+          "1",
+          "6.3251"
+        ],
+        [
+          "5",
+          "R7P JT Big Horn ICE T4 EVO Hurricane NA TNAP (Toledo)_CM_2026-03-03_1923_2025-08",
+          "R7P JT Big Horn ICE T4 EVO Hurricane NA TNAP (Toledo)",
+          "CM",
+          "2025-08-25 00:00:00",
+          "8082800",
+          "NON-PORO",
+          "N/A",
+          "BODY",
+          "3FIP",
+          "WEATHERSTRIP WEATHERSTRIP  - REAR DOOR LT",
+          "Top Hat",
+          "",
+          "SEAL RUBBER NONE",
+          "68359196AB",
+          "2",
+          "0.82"
+        ]
+      ]
+    },
+    {
+      "name": "Config",
+      "state": "hidden",
+      "headers_sample": [
+        [
+          "Milestone",
+          "Index"
+        ],
+        [
+          "IM",
+          "1"
+        ],
+        [
+          "PM",
+          "2"
+        ],
+        [
+          "CM",
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "CostBookRecords",
+      "state": "hidden",
+      "headers_sample": [
+        [
+          "Vehicle Code",
+          "Milestone",
+          "Milestone Date",
+          "Source File"
+        ],
+        [
+          "R7P JT Big Horn ICE T4 EVO Hurricane NA TNAP (Toledo)",
+          "CM",
+          "2025-08-25 00:00:00",
+          "https://shiftup.sharepoint.com/sites/STLA-Tools/Shared Documents/CTPC/TPC Databa"
+        ],
+        [
+          "DT2 DT Big Horn ICE 3.6L V6 NA SHAP (Sterling Heights)",
+          "IM",
+          "2025-09-15 00:00:00",
+          "https://shiftup.sharepoint.com/sites/STLA-Tools/Shared Documents/CTPC/TPC Databa"
+        ],
+        [
+          "J4U NA STLA-MEDIUM Laredo ICE EP6 NA Belvidere",
+          "CM",
+          "2026-02-01 00:00:00",
+          "https://shiftup.sharepoint.com/sites/STLA-Tools/Shared Documents/CTPC/TPC Databa"
+        ],
+        [
+          "F2U Smart Car L2 ICON BEV 400km MEA Kenitra",
+          "SHRM",
+          "2024-08-10 00:00:00",
+          "https://shiftup.sharepoint.com/sites/STLA-Tools/Shared Documents/CTPC/TPC Databa"
+        ]
+      ]
+    },
+    {
+      "name": "TPC_ChartScratch",
+      "state": "veryHidden",
+      "headers_sample": []
+    }
+  ],
+  "connections": [
+    {
+      "id": "1",
+      "name": "Requ\u00eate\u00a0-\u00a0CarlinesDefinition",
+      "type": "5",
+      "refreshedVersion": "8"
+    },
+    {
+      "id": "2",
+      "name": "Requ\u00eate\u00a0-\u00a0CostBookRecords",
+      "type": "5",
+      "refreshedVersion": "8"
+    },
+    {
+      "id": "3",
+      "name": "Requ\u00eate\u00a0-\u00a0ExchangeRates",
+      "type": "5",
+      "refreshedVersion": "8"
+    },
+    {
+      "id": "4",
+      "name": "Requ\u00eate\u00a0-\u00a0StackedCostbooks",
+      "type": "5",
+      "refreshedVersion": "8"
+    }
+  ],
+  "query_tables": [
+    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<queryTable xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" mc:Ignorable=\"xr16\" xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\" name=\"Donn\u00e9esExternes_1\" connectionId=\"3\" xr16:uid=\"{49728F66-0FBD-4BB3-B9E4-DFBF4285E907}\" autoFormatId=\"16\" applyNumberFormats=\"0\" applyBorderFormats=\"0\" applyFontFormats=\"0\" applyPatternFormats=\"0\" applyAlignmentFormats=\"0\" applyWidthHeightFormats=\"0\"><queryTableRefresh nextId=\"24\"><queryTableFields count=\"3\"><queryTableField id=\"21\" name=\"Currency\" tableColumnId=\"21\"/><queryTableField id=\"22\" name=\"Year\" tableColumnId=\"22\"/><queryTableField id=\"23\" name=\"Rate\" tableColumnId=\"23\"/></queryTableFields></queryTableRefresh></queryTable>",
+    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<queryTable xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" mc:Ignorable=\"xr16\" xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\" name=\"Donn\u00e9esExternes_2\" connectionId=\"1\" xr16:uid=\"{A78B6C47-9079-4274-92EB-996996D04594}\" autoFormatId=\"16\" applyNumberFormats=\"0\" applyBorderFormats=\"0\" applyFontFormats=\"0\" applyPatternFormats=\"0\" applyAlignmentFormats=\"0\" applyWidthHeightFormats=\"0\"><queryTableRefresh nextId=\"24\"><queryTableFields count=\"20\"><queryTableField id=\"1\" name=\"Title\" tableColumnId=\"1\"/><queryTableField id=\"2\" name=\"project\" tableColumnId=\"2\"/><queryTableField id=\"3\" name=\"program\" tableColumnId=\"3\"/><queryTableField id=\"4\" name=\"commercial_name\" tableColumnId=\"4\"/><queryTableField id=\"5\" name=\"pcp_team\" tableColumnId=\"5\"/><queryTableField id=\"6\" name=\"plant\" tableColumnId=\"6\"/><queryTableField id=\"7\" name=\"region\" tableColumnId=\"7\"/><queryTableField id=\"8\" name=\"base_currency\" tableColumnId=\"8\"/><queryTableField id=\"9\" name=\"sop_date\" tableColumnId=\"9\"/><queryTableField id=\"10\" name=\"platform\" tableColumnId=\"10\"/><queryTableField id=\"11\" name=\"trim\" tableColumnId=\"11\"/><queryTableField id=\"12\" name=\"powertrain_type\" tableColumnId=\"12\"/><queryTableField id=\"13\" name=\"powertrain_version\" tableColumnId=\"13\"/><queryTableField id=\"14\" name=\"powertrain_detail\" tableColumnId=\"14\"/><queryTableField id=\"16\" name=\"carline_key\" tableColumnId=\"16\"/><queryTableField id=\"17\" name=\"CountryOrRegion0\" tableColumnId=\"17\"/><queryTableField id=\"18\" name=\"brand\" tableColumnId=\"18\"/><queryTableField id=\"19\" name=\"segment\" tableColumnId=\"19\"/><queryTableField id=\"20\" name=\"carline_type\" tableColumnId=\"20\"/><queryTableField id=\"21\" name=\"Reference Person.EMail\" tableColumnId=\"21\"/></queryTableFields></queryTableRefresh></queryTable>",
+    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<queryTable xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" mc:Ignorable=\"xr16\" xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\" name=\"Donn\u00e9esExternes_1\" connectionId=\"4\" xr16:uid=\"{07674618-EDF5-402D-8B42-86E502D86C6A}\" autoFormatId=\"16\" applyNumberFormats=\"0\" applyBorderFormats=\"0\" applyFontFormats=\"0\" applyPatternFormats=\"0\" applyAlignmentFormats=\"0\" applyWidthHeightFormats=\"0\"><queryTableRefresh nextId=\"39\" unboundColumnsRight=\"4\"><queryTableFields count=\"34\"><queryTableField id=\"1\" name=\"Index\" tableColumnId=\"1\"/><queryTableField id=\"2\" name=\"Data Source\" tableColumnId=\"2\"/><queryTableField id=\"3\" name=\"Vehicle Code\" tableColumnId=\"3\"/><queryTableField id=\"4\" name=\"Milestone\" tableColumnId=\"4\"/><queryTableField id=\"5\" name=\"Milestone Date\" tableColumnId=\"5\"/><queryTableField id=\"6\" name=\"VSC\" tableColumnId=\"6\"/><queryTableField id=\"34\" name=\"Matricola\" tableColumnId=\"31\"/><queryTableField id=\"7\" name=\"Poro\" tableColumnId=\"7\"/><queryTableField id=\"8\" name=\"PoRo Name\" tableColumnId=\"8\"/><queryTableField id=\"9\" name=\"Macro System\" tableColumnId=\"9\"/><queryTableField id=\"10\" name=\"Subsystem\" tableColumnId=\"10\"/><queryTableField id=\"11\" name=\"VSC Description\" tableColumnId=\"11\"/><queryTableField id=\"12\" name=\"5th\" tableColumnId=\"12\"/><queryTableField id=\"13\" name=\"Module Code\" tableColumnId=\"13\"/><queryTableField id=\"14\" name=\"Part Description\" tableColumnId=\"14\"/><queryTableField id=\"15\" name=\"Part Number\" tableColumnId=\"15\"/><queryTableField id=\"16\" name=\"Qty\" tableColumnId=\"16\"/><queryTableField id=\"17\" name=\"TPC\" tableColumnId=\"17\"/><queryTableField id=\"18\" name=\"LOT\" tableColumnId=\"18\"/><queryTableField id=\"19\" name=\"CPSA\" tableColumnId=\"19\"/><queryTableField id=\"20\" name=\"Module Code Description\" tableColumnId=\"20\"/><queryTableField id=\"22\" name=\"Normalized Part Name (EN)\" tableColumnId=",
+    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<queryTable xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" mc:Ignorable=\"xr16\" xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\" name=\"Donn\u00e9esExternes_1\" connectionId=\"2\" xr16:uid=\"{E663AB0E-EF23-4EC4-AB0E-235C6C27C599}\" autoFormatId=\"16\" applyNumberFormats=\"0\" applyBorderFormats=\"0\" applyFontFormats=\"0\" applyPatternFormats=\"0\" applyAlignmentFormats=\"0\" applyWidthHeightFormats=\"0\"><queryTableRefresh nextId=\"7\"><queryTableFields count=\"4\"><queryTableField id=\"1\" name=\"Vehicle Code\" tableColumnId=\"1\"/><queryTableField id=\"2\" name=\"Milestone\" tableColumnId=\"2\"/><queryTableField id=\"5\" name=\"Milestone Date\" tableColumnId=\"3\"/><queryTableField id=\"6\" name=\"Source File\" tableColumnId=\"4\"/></queryTableFields></queryTableRefresh></queryTable>"
+  ]
+}

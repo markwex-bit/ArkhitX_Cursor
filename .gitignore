@@ -12,6 +12,7 @@ data/
 # framework plus a chosen subset of projects).
 /projects/*
 !/projects/qlik-pbi-migration/
+!/projects/BOM/
 
 # Secrets
 .env.local

@@ -1,0 +1,108 @@
+{
+  "source": "TPC Database - Synthesis Generator.xlsm",
+  "tables": {
+    "carlines_definition": {
+      "rows": 129,
+      "columns": [
+        "Title",
+        "project",
+        "program",
+        "commercial_name",
+        "pcp_team",
+        "plant",
+        "region",
+        "base_currency",
+        "sop_date",
+        "platform",
+        "trim",
+        "powertrain_type",
+        "powertrain_version",
+        "powertrain_detail",
+        "carline_key",
+        "CountryOrRegion0",
+        "brand",
+        "segment",
+        "carline_type",
+        "Reference Person.EMail"
+      ],
+      "file": "carlines_definition.parquet"
+    },
+    "stacked_costbooks": {
+      "rows": 96393,
+      "columns": [
+        "Index",
+        "Data Source",
+        "Vehicle Code",
+        "Milestone",
+        "Milestone Date",
+        "VSC",
+        "Matricola",
+        "Poro",
+        "PoRo Name",
+        "Macro System",
+        "Subsystem",
+        "VSC Description",
+        "5th",
+        "Module Code",
+        "Part Description",
+        "Part Number",
+        "Qty",
+        "TPC",
+        "LOT",
+        "CPSA",
+        "Module Code Description",
+        "Normalized Part Name (EN)",
+        "L1 Macro System",
+        "L2 System",
+        "L3 Subsystem",
+        "Classification Method",
+        "Confidence",
+        "LOT Description",
+        "Matricola Description",
+        "RowKey",
+        "Automatic Fifth",
+        "Manual Fifth",
+        "Selected Fifth",
+        "Automatic Fifth Comment"
+      ],
+      "file": "stacked_costbooks.parquet"
+    },
+    "costbook_records": {
+      "rows": 69,
+      "columns": [
+        "Vehicle Code",
+        "Milestone",
+        "Milestone Date",
+        "Source File"
+      ],
+      "file": "costbook_records.parquet"
+    },
+    "exchange_rates": {
+      "rows": 30,
+      "columns": [
+        "Currency",
+        "Year",
+        "Rate"
+      ],
+      "file": "exchange_rates.parquet"
+    },
+    "milestones": {
+      "rows": 11,
+      "columns": [
+        "Unnamed: 0",
+        "Unnamed: 1",
+        "Unnamed: 2"
+      ],
+      "file": "milestones.parquet"
+    },
+    "stacked_costbooks_demo": {
+      "rows": 3903,
+      "vehicles": [
+        "R7P JT Big Horn ICE T4 EVO Hurricane NA TNAP (Toledo)",
+        "J4U NA STLA-MEDIUM Laredo ICE EP6 NA Belvidere",
+        "DT2 DT Big Horn ICE 3.6L V6 NA SHAP (Sterling Heights)"
+      ],
+      "file": "stacked_costbooks_demo.parquet"
+    }
+  }
+}
